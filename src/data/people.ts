@@ -178,7 +178,7 @@ export const DEMO_COLLEAGUE: Colleague = {
   preferredName: "Alice",
   email: null,
   role: "Broker",
-  avatarUrl: null,
+  avatarUrl: "/avatars/alice-broker.webp",
   initials: "AB",
   accentHue: 265,
   rarity: "Common",

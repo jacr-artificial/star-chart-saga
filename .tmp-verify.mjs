@@ -1,0 +1,14 @@
+import { chromium } from "playwright";
+const shotDir = "/private/tmp/claude-501/-Users-jrodgus-Desktop-star-chart-saga/68fe9d49-f500-4bbe-a2b9-c04e41564a87/scratchpad";
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1200, height: 800 } });
+const errors = [];
+page.on("console", (msg) => { if (msg.type() === "error") errors.push(msg.text()); });
+page.on("pageerror", (err) => errors.push(String(err)));
+await page.goto("http://localhost:8080/app", { waitUntil: "networkidle" });
+await page.waitForTimeout(500);
+await page.getByText("My card").click();
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${shotDir}/alice-avatar.png` });
+console.log("ERRORS:", JSON.stringify(errors));
+await browser.close();
