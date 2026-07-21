@@ -14,7 +14,6 @@ const NAV: { id: ScreenId; label: string; icon: string }[] = [
   { id: "galaxy", label: "Galaxy map", icon: "🪐" },
   { id: "card", label: "My card", icon: "🃏" },
   { id: "collection", label: "The Galaxy", icon: "🌌" },
-  { id: "squad", label: "Squad", icon: "🛡️" },
 ];
 
 export default function OrbitApp() {
