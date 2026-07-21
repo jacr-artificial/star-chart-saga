@@ -102,26 +102,28 @@ export const PLANETS: Planet[] = [
       "Where every new joiner learns to speak insurance. Complete missions to earn XP for your squad.",
   },
   {
-    id: "p-modelia",
-    name: "Modelia",
-    domain: "Data & Models",
+    id: "p-actuaria",
+    name: "Actuaria",
+    domain: "Pricing, Data & Models",
     order: 2,
     size: 115,
     color: "from-cyan-400 via-blue-500 to-indigo-800",
     ring: false,
     real: false,
-    blurb: "Pricing models, data pipelines and the ML that powers them.",
+    blurb:
+      "Where exposure becomes a distribution — pricing models, loss ratios, and the data behind every quote.",
   },
   {
-    id: "p-shipyard",
-    name: "Shipyard",
-    domain: "Engineering & Delivery",
+    id: "p-bindara",
+    name: "Bindara",
+    domain: "Placing & Binding Authority",
     order: 3,
     size: 130,
     color: "from-emerald-400 via-teal-500 to-cyan-800",
     ring: true,
     real: false,
-    blurb: "How we build, review and ship — from branch to production.",
+    blurb:
+      "How cover is placed, bound, and delivered — from slip to policy, binder to bordereaux.",
   },
 ];
 

@@ -47,7 +47,8 @@ export default function GalaxyExplorer() {
 
   // Resize
   useEffect(() => {
-    const canvas = canvasRef.current!;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const w = window.innerWidth;
@@ -146,13 +147,18 @@ export default function GalaxyExplorer() {
 
       camPrevRef.current = { x: cam.x, y: cam.y, zoom: cam.zoom };
 
-      setTick((t) => (t + 1) % 1000000);
+      // Throttle React re-renders — a setState every frame freezes the tab
+      if (Math.floor(elapsed * 12) !== Math.floor((elapsed - dt) * 12)) {
+        setTick((t) => (t + 1) % 1000000);
+      }
       raf = requestAnimationFrame(render);
     };
 
     const draw = (t: number, dt: number) => {
-      const canvas = canvasRef.current!;
-      const ctx = canvas.getContext("2d")!;
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
       const { w, h, dpr } = sizeRef.current;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 

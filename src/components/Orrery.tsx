@@ -23,7 +23,7 @@ const ORBITS: Record<string, OrbitCfg> = {
     theta: 0.7,
     tilt: 0.35,
   },
-  "p-modelia": {
+  "p-actuaria": {
     color: 0x38bdf8,
     deep: 0x1e3a8a,
     radius: 11.5,
@@ -32,7 +32,7 @@ const ORBITS: Record<string, OrbitCfg> = {
     theta: 2.9,
     tilt: -0.25,
   },
-  "p-shipyard": {
+  "p-bindara": {
     color: 0x34d399,
     deep: 0x065f46,
     radius: 15.5,

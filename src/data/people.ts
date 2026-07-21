@@ -111,7 +111,8 @@ function deriveStats(h: number): Stats {
   const stats: Stats = { insight: 1, energy: 1, collab: 1, craft: 1 };
   let remaining = 20; // 24 - 4 baseline
   let seed = h;
-  while (remaining > 0) {
+  // Hard cap prevents any pathological infinite loop
+  for (let guard = 0; remaining > 0 && guard < 200; guard++) {
     seed = (seed * 1103515245 + 12345) >>> 0;
     const key = keys[seed % 4]!;
     if (stats[key] < 10) {

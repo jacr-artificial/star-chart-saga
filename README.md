@@ -1,12 +1,8 @@
 # Star Chart Saga
 
-An insurance-themed onboarding galaxy with colleague cards, quizzes, XP, and a
-3D learning map. People and profile photos are loaded from
-`src/data/people.json`.
+Insurance-themed galaxy onboarding: explore the chart, customise your card, collect colleagues, and earn XP on Riskara.
 
-## Start locally
-
-Requires Node.js 20 or newer.
+## Start
 
 ```bash
 git clone <repository-url>
@@ -17,12 +13,19 @@ npm run dev
 
 Open [http://localhost:8080](http://localhost:8080).
 
-## Other commands
+| Route | What you get |
+|-------|----------------|
+| `/` | Hyperlane Chart landing |
+| `/app` | Orbit — cards, collection, quiz, squad |
+
+## Scripts
 
 ```bash
-npm run build
-npm run preview
-npm run lint
+npm run build    # production build
+npm run preview  # preview production build
+npm run lint     # lint
 ```
 
-Built with TanStack Start, React, TypeScript, Tailwind CSS, and Three.js.
+Requires **Node.js 20+**.
+
+People and photos come from `src/data/people.json`.

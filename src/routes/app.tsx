@@ -3,7 +3,6 @@ import { StoreProvider } from "@/store";
 import OrbitApp from "@/components/OrbitApp";
 
 export const Route = createFileRoute("/app")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Orbit — Collect your colleagues" },
