@@ -15,7 +15,7 @@ export default function GalaxyMap() {
   const focused = focusedId ? (PLANETS.find((p) => p.id === focusedId) ?? null) : null;
 
   return (
-    <div className="relative z-10 mx-auto flex h-[calc(100dvh-9rem)] max-w-7xl flex-col overflow-hidden px-6 pt-2">
+    <div className="relative z-10 flex h-[calc(100dvh-9rem)] flex-col overflow-hidden px-6 pt-2">
       <div className="relative flex-1 overflow-hidden rounded-3xl border border-brand-panel bg-gradient-to-b from-brand-panel/40 to-background/20">
         <Suspense
           fallback={
