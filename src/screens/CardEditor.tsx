@@ -101,8 +101,8 @@ export default function CardEditor() {
             <div className="mt-3 space-y-3">
               {STAT_KEYS.map((s) => (
                 <div key={s.key} className="flex items-center gap-3">
-                  <span className="w-24 text-sm text-slate-300">
-                    {s.icon} {s.label}
+                  <span className="w-36 shrink-0 whitespace-nowrap text-sm text-slate-300">
+                    {s.label}
                   </span>
                   <input
                     type="range"

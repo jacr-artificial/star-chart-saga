@@ -4,6 +4,8 @@ import {
   DEMO_COLLEAGUE,
   DEMO_PERSON_ID,
   INITIALLY_UNLOCKED,
+  STAT_DEFS,
+  STAT_POINTS,
   type Colleague,
   type Rarity,
   type Stats,
@@ -55,14 +57,9 @@ export const RARITY_STYLES: Record<
   },
 };
 
-export const STAT_KEYS = [
-  { key: "insight" as const, label: "Insight", icon: "🔮" },
-  { key: "energy" as const, label: "Energy", icon: "⚡" },
-  { key: "collab" as const, label: "Collab", icon: "🤝" },
-  { key: "craft" as const, label: "Craft", icon: "🛠️" },
-];
+export const STAT_KEYS = STAT_DEFS;
 
-export const STAT_POINTS = 24;
+export { STAT_POINTS };
 
 export const DEMO_USER = {
   id: DEMO_PERSON_ID,
@@ -93,7 +90,7 @@ export type Planet = {
 export const PLANETS: Planet[] = [
   {
     id: "p-riskara",
-    name: "Risk",
+    name: "Riskara",
     domain: "Insurance Fundamentals",
     order: 1,
     size: 150,

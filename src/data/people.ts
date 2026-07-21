@@ -2,12 +2,22 @@ import rawPeople from "./people.json";
 
 export type Rarity = "Common" | "Rare" | "Epic" | "Legendary";
 
+export const STAT_DEFS = [
+  { key: "insuranceExpert", label: "Insurance Expert" },
+  { key: "riskAppetite", label: "Risk Appetite" },
+  { key: "customerFacing", label: "Customer Facing" },
+  { key: "technical", label: "Technical" },
+  { key: "underwriting", label: "Underwriting" },
+  { key: "claimsHandling", label: "Claims Handling" },
+  { key: "compliance", label: "Compliance" },
+  { key: "negotiation", label: "Negotiation" },
+] as const;
+
 export type Stats = {
-  insight: number;
-  energy: number;
-  collab: number;
-  craft: number;
+  [K in (typeof STAT_DEFS)[number]["key"]]: number;
 };
+
+export const STAT_POINTS = STAT_DEFS.length * 6;
 
 export type PersonRaw = {
   id: string;
@@ -105,16 +115,16 @@ function pick<T>(arr: T[], h: number, salt: number): T {
   return arr[(h + salt) % arr.length]!;
 }
 
-/** Distribute STAT_POINTS across 4 stats, each clamped 1–10. */
+/** Distribute STAT_POINTS across all stats, each clamped 1–10. */
 function deriveStats(h: number): Stats {
-  const keys: (keyof Stats)[] = ["insight", "energy", "collab", "craft"];
-  const stats: Stats = { insight: 1, energy: 1, collab: 1, craft: 1 };
-  let remaining = 20; // 24 - 4 baseline
+  const keys = STAT_DEFS.map((s) => s.key);
+  const stats = Object.fromEntries(keys.map((k) => [k, 1])) as Stats;
+  let remaining = STAT_POINTS - keys.length; // baseline of 1 per stat already assigned
   let seed = h;
   // Hard cap prevents any pathological infinite loop
-  for (let guard = 0; remaining > 0 && guard < 200; guard++) {
+  for (let guard = 0; remaining > 0 && guard < 400; guard++) {
     seed = (seed * 1103515245 + 12345) >>> 0;
-    const key = keys[seed % 4]!;
+    const key = keys[seed % keys.length]!;
     if (stats[key] < 10) {
       stats[key] += 1;
       remaining -= 1;
@@ -173,7 +183,16 @@ export const DEMO_COLLEAGUE: Colleague = {
   accentHue: 265,
   rarity: "Common",
   catchphrase: "New in the galaxy 👋",
-  stats: { insight: 6, energy: 6, collab: 6, craft: 6 },
+  stats: {
+    insuranceExpert: 6,
+    riskAppetite: 6,
+    customerFacing: 6,
+    technical: 6,
+    underwriting: 6,
+    claimsHandling: 6,
+    compliance: 6,
+    negotiation: 6,
+  },
 };
 
 /** Everyone in the directory is collectible (demo user is separate / fake). */
