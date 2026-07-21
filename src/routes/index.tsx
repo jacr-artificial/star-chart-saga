@@ -1,24 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
+import GalaxyExplorer from "@/components/GalaxyExplorer";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Aetherion Archive — Galaxy Explorer" },
+      {
+        name: "description",
+        content:
+          "An immersive galaxy explorer of the Aetherion universe. Drift between worlds, uncover their lore, and chart the arms of a fictional spiral galaxy.",
+      },
+      { property: "og:title", content: "Aetherion Archive — Galaxy Explorer" },
+      {
+        property: "og:description",
+        content:
+          "Drift between 8 fictional worlds in an interactive spiral-galaxy worldbuilding experience.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+  return <GalaxyExplorer />;
 }
