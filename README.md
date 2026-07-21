@@ -16,7 +16,7 @@ Open [http://localhost:8080](http://localhost:8080).
 | Route | What you get |
 |-------|----------------|
 | `/` | Hyperlane Chart landing |
-| `/app` | Orbit — cards, collection, quiz, squad |
+| `/app` | Hire Orbit — cards, collection, quiz, squad |
 
 ## Scripts
 

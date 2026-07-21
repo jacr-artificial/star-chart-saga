@@ -707,9 +707,6 @@ export default function Orrery({
           <div className="pointer-events-auto rounded-xl border border-white/15 bg-[#0b0d22]/80 backdrop-blur px-3 py-1.5 shadow-lg">
             <div className="text-sm font-bold leading-tight flex items-center gap-1.5 justify-center">
               {p.name}
-              {p.id === DEMO_USER.spawnPlanetId && (
-                <span className="text-[0.6rem] text-amber-300">🏠</span>
-              )}
             </div>
             {p.comingSoon ? (
               <div className="mt-0.5 text-[0.6rem] uppercase tracking-[0.15em] text-fuchsia-300/90">

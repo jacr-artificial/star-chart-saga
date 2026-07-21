@@ -27,17 +27,17 @@ export default function Onboarding() {
   return (
     <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">
       <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-primary/80">
-        ✦ onboarding sequence
+        ✦ onboarding ✦
       </div>
       <h1 className="mt-3 font-display text-4xl tracking-[0.08em]">
         Welcome to{" "}
         <span className="bg-gradient-to-r from-violet-400 to-amber-300 bg-clip-text text-transparent">
-          Orbit
+          Hire Orbit
         </span>
       </h1>
       <p className="text-muted-foreground mt-3 max-w-md">
         Day one, {DEMO_USER.name.split(" ")[0]}. Drop your CV and we&apos;ll find your place in the
-        galaxy.
+        Artificial galaxy.
       </p>
 
       {stage === "drop" && (
