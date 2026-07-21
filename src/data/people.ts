@@ -172,10 +172,10 @@ export const DEMO_PERSON_ID = "demo-alice-broker";
 
 export const DEMO_COLLEAGUE: Colleague = {
   id: DEMO_PERSON_ID,
-  name: "Alice Broker",
-  firstName: "Alice",
-  lastName: "Broker",
-  preferredName: "Alice",
+  name: "Kier Starmer",
+  firstName: "Keir",
+  lastName: "Starmer",
+  preferredName: "Kier",
   email: null,
   role: "Broker",
   avatarUrl: "/avatars/alice-broker.webp",

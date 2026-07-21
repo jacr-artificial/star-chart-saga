@@ -61,7 +61,7 @@ export default function CardEditor() {
               <div>
                 <div className="text-sm font-medium">{DEMO_USER.name}</div>
                 <div className="text-xs text-muted-foreground/80 mt-0.5">
-                  Demo profile · Alice Broker
+                  Demo profile · Kier Starmer
                 </div>
               </div>
             </div>
