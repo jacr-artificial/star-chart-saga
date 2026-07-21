@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { useStore } from "@/store";
 import PlayerCard from "@/components/PlayerCard";
 import Avatar from "@/components/Avatar";
@@ -5,6 +6,13 @@ import Avatar from "@/components/Avatar";
 export default function Collection() {
   const { colleagues, unlockedIds, startCollect } = useStore();
   const unlockedCount = colleagues.filter((c) => unlockedIds.has(c.id)).length;
+
+  const [query, setQuery] = useState("");
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return colleagues;
+    return colleagues.filter((c) => c.name.toLowerCase().includes(q));
+  }, [colleagues, query]);
 
   return (
     <div className="relative z-10 h-[calc(100dvh-4rem)] overflow-y-auto overscroll-y-contain touch-pan-y">
@@ -22,8 +30,28 @@ export default function Collection() {
           </div>
         </div>
 
+        <div className="mt-6 relative max-w-md">
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+            🔍
+          </span>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search people by name…"
+            aria-label="Search people by name"
+            className="w-full rounded-full border border-white/10 bg-white/[0.04] py-2.5 pl-10 pr-4 text-sm text-slate-200 placeholder:text-slate-500 outline-none transition focus:border-violet-400/50 focus:bg-white/[0.06]"
+          />
+        </div>
+
+        {filtered.length === 0 && (
+          <p className="mt-10 text-center text-sm text-slate-500">
+            No colleagues match “{query.trim()}”.
+          </p>
+        )}
+
         <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
-          {colleagues.map((c) => {
+          {filtered.map((c) => {
             const unlocked = unlockedIds.has(c.id);
             return unlocked ? (
               <div key={c.id} className="flex flex-col items-center gap-2">
