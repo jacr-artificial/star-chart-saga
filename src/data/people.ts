@@ -157,16 +157,27 @@ const people = rawPeople as PersonRaw[];
 
 export const COLLEAGUES: Colleague[] = people.map(personToColleague);
 
-/** Sam Shariatmadari — fixed demo "you" from people.json */
-export const DEMO_PERSON_ID = "mmCmsGosPlA7EM53lMMAAsJx";
+/** Fake demo player — not from people.json */
+export const DEMO_PERSON_ID = "demo-alice-broker";
 
-export const DEMO_COLLEAGUE: Colleague =
-  COLLEAGUES.find((c) => c.id === DEMO_PERSON_ID) ?? COLLEAGUES[0]!;
+export const DEMO_COLLEAGUE: Colleague = {
+  id: DEMO_PERSON_ID,
+  name: "Alice Broker",
+  firstName: "Alice",
+  lastName: "Broker",
+  preferredName: "Alice",
+  email: null,
+  role: "Broker",
+  avatarUrl: null,
+  initials: "AB",
+  accentHue: 265,
+  rarity: "Common",
+  catchphrase: "New in the galaxy 👋",
+  stats: { insight: 6, energy: 6, collab: 6, craft: 6 },
+};
 
-/** Colleagues excluding the demo user (for the collection grid). */
-export const COLLECTIBLE_COLLEAGUES: Colleague[] = COLLEAGUES.filter(
-  (c) => c.id !== DEMO_PERSON_ID,
-);
+/** Everyone in the directory is collectible (demo user is separate / fake). */
+export const COLLECTIBLE_COLLEAGUES: Colleague[] = COLLEAGUES;
 
 /** Two people with photos so the collection looks alive on day one. */
 export const INITIALLY_UNLOCKED: string[] = (() => {

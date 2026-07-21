@@ -1,7 +1,7 @@
 import { useStore } from "@/store";
 import { DEMO_USER } from "@/data/orbit";
 import Avatar from "@/components/Avatar";
-import Onboarding from "@/screens/Onboarding";
+import SpaceBackground from "@/components/SpaceBackground";
 import GalaxyMap from "@/screens/GalaxyMap";
 import CardEditor from "@/screens/CardEditor";
 import Collection from "@/screens/Collection";
@@ -21,7 +21,6 @@ export default function OrbitApp() {
   const {
     screen,
     go,
-    onboarded,
     xp,
     toast,
     autoDetectPrompt,
@@ -35,11 +34,10 @@ export default function OrbitApp() {
     : null;
 
   return (
-    <div className="min-h-screen relative">
-      <div className="starfield" />
+    <div className="min-h-screen relative overflow-x-clip">
+      <SpaceBackground />
 
-      {onboarded && (
-        <header className="relative z-20 border-b border-white/10 bg-[#0a0c20]/80 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0a0c20]/60 backdrop-blur">
           <div className="max-w-6xl mx-auto px-6 h-16 flex items-center gap-6">
             <button onClick={() => go("galaxy")} className="font-extrabold tracking-tight text-lg">
               🪐{" "}
@@ -78,11 +76,9 @@ export default function OrbitApp() {
               </div>
             </div>
           </div>
-        </header>
-      )}
+      </header>
 
-      <main>
-        {screen === "onboarding" && <Onboarding />}
+      <main className="relative z-10 pb-16">
         {screen === "galaxy" && <GalaxyMap />}
         {screen === "card" && <CardEditor />}
         {screen === "collection" && <Collection />}

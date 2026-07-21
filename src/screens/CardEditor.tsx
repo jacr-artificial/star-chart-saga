@@ -68,7 +68,7 @@ export default function CardEditor() {
               <div>
                 <div className="text-sm font-medium">{DEMO_USER.name}</div>
                 <div className="text-xs text-slate-500 mt-0.5">
-                  Pulled from the company directory · people.json
+                  Demo profile · Alice Broker
                 </div>
               </div>
             </div>

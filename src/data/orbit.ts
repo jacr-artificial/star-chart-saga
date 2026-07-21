@@ -67,7 +67,7 @@ export const STAT_POINTS = 24;
 export const DEMO_USER = {
   id: DEMO_PERSON_ID,
   name: DEMO_COLLEAGUE.name,
-  role: "Product Engineer",
+  role: DEMO_COLLEAGUE.role,
   squadId: "sq-nebula",
   spawnPlanetId: "p-riskara",
   xp: 40,
@@ -85,6 +85,8 @@ export type Planet = {
   color: string;
   ring: boolean;
   real: boolean;
+  /** Painted door — show the planet in the orrery but no details/missions yet. */
+  comingSoon?: boolean;
   blurb: string;
 };
 
@@ -122,8 +124,18 @@ export const PLANETS: Planet[] = [
     color: "from-emerald-400 via-teal-500 to-cyan-800",
     ring: true,
     real: false,
-    blurb:
-      "How cover is placed, bound, and delivered — from slip to policy, binder to bordereaux.",
+    blurb: "How cover is placed, bound, and delivered — from slip to policy, binder to bordereaux.",
+  },
+  {
+    id: "p-brossa",
+    name: "Brossa IV",
+    domain: "Engineering & Platform",
+    order: 4,
+    size: 120,
+    color: "from-fuchsia-400 via-purple-500 to-indigo-800",
+    ring: false,
+    real: false,
+    blurb: "Engineering and platform — the systems we build and run behind every policy.",
   },
 ];
 

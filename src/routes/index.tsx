@@ -1,20 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import GalaxyExplorer from "@/components/GalaxyExplorer";
+import SpaceBackground from "@/components/SpaceBackground";
+import Onboarding from "@/screens/Onboarding";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Star Chart Saga — Galaxy Explorer" },
+      { title: "Star Chart Saga — Begin your orbit" },
       {
         name: "description",
         content:
-          "Drift through the hyperlane chart, then enter Orbit to customise your card, collect colleagues, and earn XP on Riskara.",
+          "Drop your CV and we'll find your place in the galaxy — an insurance-themed onboarding with cards, quizzes, and a living orrery.",
       },
-      { property: "og:title", content: "Star Chart Saga — Galaxy Explorer" },
+      { property: "og:title", content: "Star Chart Saga — Begin your orbit" },
       {
         property: "og:description",
         content:
-          "Slick galaxy landing meets deep Orbit onboarding — quizzes, cards, and your real colleagues.",
+          "Onboard into Orbit: customise your card, collect colleagues, and earn XP on Riskara.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -24,5 +25,10 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return <GalaxyExplorer />;
+  return (
+    <div className="relative min-h-screen overflow-x-clip">
+      <SpaceBackground />
+      <Onboarding />
+    </div>
+  );
 }
