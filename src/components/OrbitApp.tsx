@@ -23,6 +23,8 @@ export default function OrbitApp() {
     go,
     xp,
     toast,
+    autoDetect,
+    enableAutoDetect,
     autoDetectPrompt,
     setAutoDetectPrompt,
     startCollect,
@@ -38,7 +40,7 @@ export default function OrbitApp() {
       <SpaceBackground />
 
       <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0a0c20]/60 backdrop-blur">
-          <div className="max-w-6xl mx-auto px-6 h-16 flex items-center gap-6">
+          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
             <button onClick={() => go("galaxy")} className="font-extrabold tracking-tight text-lg">
               🪐{" "}
               <span className="bg-gradient-to-r from-violet-400 to-amber-300 bg-clip-text text-transparent font-display tracking-wider">
@@ -62,6 +64,20 @@ export default function OrbitApp() {
               ))}
             </nav>
             <div className="ml-auto flex items-center gap-3">
+              <label className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 cursor-pointer select-none">
+                <span className="text-xs text-slate-300">✨ Auto-detect</span>
+                <button
+                  onClick={() => !autoDetect && enableAutoDetect()}
+                  className={`relative w-9 h-5 rounded-full transition ${autoDetect ? "bg-emerald-500" : "bg-slate-700"}`}
+                  role="switch"
+                  aria-checked={autoDetect}
+                  aria-label="Auto-detect meetings"
+                >
+                  <span
+                    className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${autoDetect ? "left-[1.15rem]" : "left-0.5"}`}
+                  />
+                </button>
+              </label>
               <div className="text-xs bg-amber-400/15 text-amber-300 border border-amber-400/30 rounded-full px-3 py-1 font-semibold">
                 ⭐ {xp} XP
               </div>
