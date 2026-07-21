@@ -11,13 +11,13 @@ export default function Collection() {
       <div className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold font-display tracking-wide">The Galaxy</h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Every colleague is a card. Meet them in real life to collect them.
           </p>
         </div>
-        <div className="text-sm bg-white/5 border border-white/10 rounded-full px-4 py-1.5">
-          <span className="font-bold text-violet-300">{unlockedCount}</span>
-          <span className="text-slate-400"> / {colleagues.length} collected</span>
+        <div className="text-sm bg-white/5 border border-brand-panel rounded-full px-4 py-1.5">
+          <span className="font-bold text-brand-lemon">{unlockedCount}</span>
+          <span className="text-muted-foreground"> / {colleagues.length} collected</span>
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export default function Collection() {
                 catchphrase={c.catchphrase}
                 stats={c.stats}
               />
-              <span className="text-[0.65rem] text-emerald-400/90 uppercase tracking-widest">
+              <span className="text-[0.65rem] text-brand-lemon/90 uppercase tracking-widest">
                 Collected
               </span>
             </div>
@@ -48,7 +48,7 @@ export default function Collection() {
               className="group flex flex-col items-center gap-2"
               title={`Meet ${c.name} to collect their card`}
             >
-              <div className="w-40 h-56 rounded-2xl border border-white/10 bg-white/[0.03] flex flex-col items-center justify-center gap-2 transition group-hover:border-violet-400/40 group-hover:bg-violet-500/5">
+              <div className="w-40 h-56 rounded-2xl border border-brand-panel bg-white/[0.03] flex flex-col items-center justify-center gap-2 transition group-hover:border-brand-magenta/40 group-hover:bg-brand-magenta/5">
                 <Avatar
                   url={c.avatarUrl}
                   initials={c.initials}
@@ -56,15 +56,15 @@ export default function Collection() {
                   size="md"
                   locked
                 />
-                <div className="text-slate-500 text-xs font-medium px-2 text-center leading-tight">
+                <div className="text-muted-foreground text-xs font-medium px-2 text-center leading-tight">
                   {c.name}
                 </div>
-                <div className="text-slate-600 text-[0.65rem] px-2 text-center">{c.role}</div>
-                <div className="mt-2 text-[0.65rem] px-2.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/10 group-hover:text-violet-300 group-hover:border-violet-400/40 transition">
+                <div className="text-muted-foreground/55 text-[0.65rem] px-2 text-center">{c.role}</div>
+                <div className="mt-2 text-[0.65rem] px-2.5 py-1 rounded-full bg-white/5 text-muted-foreground border border-brand-panel group-hover:text-brand-magenta group-hover:border-brand-magenta/40 transition">
                   🔒 Meet to collect
                 </div>
               </div>
-              <span className="text-[0.65rem] text-slate-600 uppercase tracking-widest">
+              <span className="text-[0.65rem] text-muted-foreground/55 uppercase tracking-widest">
                 Locked
               </span>
             </button>

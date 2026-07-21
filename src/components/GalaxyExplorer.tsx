@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { PLANETS, type Planet } from "@/data/planets";
+import BadgeCluster from "@/components/brand/BadgeCluster";
 
 type Camera = { x: number; y: number; zoom: number };
 
@@ -162,24 +163,24 @@ export default function GalaxyExplorer() {
       const { w, h, dpr } = sizeRef.current;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Deep space background — near black with a faint galactic haze
-      ctx.fillStyle = "#02030a";
+      // Deep space background — the deck's warm near-black canvas
+      ctx.fillStyle = "#111111";
       ctx.fillRect(0, 0, w, h);
 
-      // Faint milky-way band (subtle diagonal)
+      // Faint milky-way band (subtle diagonal) — warm plum haze
       ctx.save();
       ctx.globalCompositeOperation = "screen";
       const bandGrad = ctx.createLinearGradient(0, h * 0.2, w, h * 0.8);
-      bandGrad.addColorStop(0, "rgba(30,20,60,0)");
-      bandGrad.addColorStop(0.5, "rgba(60,40,110,0.35)");
-      bandGrad.addColorStop(1, "rgba(20,30,70,0)");
+      bandGrad.addColorStop(0, "rgba(60,20,50,0)");
+      bandGrad.addColorStop(0.5, "rgba(95,42,84,0.32)");
+      bandGrad.addColorStop(1, "rgba(40,28,22,0)");
       ctx.fillStyle = bandGrad;
       ctx.fillRect(0, 0, w, h);
-      // faint dust puffs
+      // faint dust puffs — magenta / lemon / parchment, held well back
       const puffs = [
-        { x: 0.25, y: 0.4, r: 380, c: "rgba(80,40,140,0.18)" },
-        { x: 0.75, y: 0.6, r: 460, c: "rgba(30,80,140,0.15)" },
-        { x: 0.55, y: 0.25, r: 300, c: "rgba(140,60,100,0.12)" },
+        { x: 0.25, y: 0.4, r: 380, c: "rgba(154,72,144,0.16)" },
+        { x: 0.75, y: 0.6, r: 460, c: "rgba(193,176,166,0.09)" },
+        { x: 0.55, y: 0.25, r: 300, c: "rgba(207,111,165,0.12)" },
       ];
       for (const p of puffs) {
         const g = ctx.createRadialGradient(w * p.x, h * p.y, 0, w * p.x, h * p.y, p.r);
@@ -265,8 +266,8 @@ export default function GalaxyExplorer() {
       // Warp bloom overlay
       if (warp > 0.05) {
         const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.6);
-        g.addColorStop(0, `rgba(180,210,255,${warp * 0.35})`);
-        g.addColorStop(0.4, `rgba(120,140,220,${warp * 0.12})`);
+        g.addColorStop(0, `rgba(240,235,205,${warp * 0.32})`);
+        g.addColorStop(0.4, `rgba(207,111,165,${warp * 0.14})`);
         g.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, w, h);
@@ -278,8 +279,8 @@ export default function GalaxyExplorer() {
       ctx.scale(cam.zoom, cam.zoom);
       ctx.globalCompositeOperation = "screen";
       const core = ctx.createRadialGradient(0, 0, 0, 0, 0, 700);
-      core.addColorStop(0, "rgba(255,220,180,0.25)");
-      core.addColorStop(0.25, "rgba(200,140,220,0.10)");
+      core.addColorStop(0, "rgba(240,235,205,0.22)");
+      core.addColorStop(0.25, "rgba(207,111,165,0.10)");
       core.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = core;
       ctx.beginPath();
@@ -472,10 +473,16 @@ export default function GalaxyExplorer() {
         }}
       />
 
-      {/* HUD Header */}
+      {/* HUD Header — wordmark top-left, badge cluster top-right (deck title convention) */}
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-start justify-between p-6">
         <div className="pointer-events-auto">
-          <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-primary/80">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="inline-block h-1.5 w-1.5 rotate-45 bg-brand-magenta" />
+            <span className="font-display text-sm font-bold uppercase tracking-[0.28em] text-foreground">
+              Artificial
+            </span>
+          </div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-brand-magenta/80">
             ✦ Orbit Insurance Learning Array
           </div>
           <div className="mt-1 font-display text-2xl tracking-[0.15em] text-foreground">
@@ -483,15 +490,16 @@ export default function GalaxyExplorer() {
           </div>
         </div>
         <div className="pointer-events-auto text-right font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+          <BadgeCluster className="mb-3 justify-end" />
           <div>sector 7-G · scan mode</div>
-          <div className="mt-1 text-primary/70">drag · scroll · engage</div>
+          <div className="mt-1 text-brand-magenta/70">drag · scroll · engage</div>
         </div>
       </div>
 
       {/* Bottom-left HUD */}
       <div className="pointer-events-none absolute bottom-6 left-6 z-10 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
         <div className="flex items-center gap-2">
-          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary/80" />
+          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-brand-magenta/80" />
           nav.link stable
         </div>
         <div className="mt-1 opacity-60">{PLANETS.length} worlds indexed</div>
@@ -501,9 +509,9 @@ export default function GalaxyExplorer() {
       <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 flex flex-col items-center gap-2">
         <Link
           to="/app"
-          className="group flex items-center gap-3 rounded-full border border-primary/40 bg-background/70 px-6 py-3 font-display text-sm tracking-[0.2em] text-foreground backdrop-blur-xl transition hover:border-primary hover:bg-primary/15 hover:shadow-[0_0_32px_rgba(167,139,250,0.35)]"
+          className="group flex items-center gap-3 rounded-full border border-brand-lemon/50 bg-background/70 px-6 py-3 font-display text-sm tracking-[0.2em] text-foreground backdrop-blur-xl transition hover:border-brand-lemon hover:bg-brand-lemon/15 hover:shadow-[0_0_32px_rgba(240,249,95,0.3)]"
         >
-          <span className="font-mono text-[10px] text-primary/80">✦</span>
+          <span className="font-mono text-[10px] text-brand-lemon">✦</span>
           ENTER THE GALAXY
           <span className="transition group-hover:translate-x-0.5">→</span>
         </Link>
@@ -519,7 +527,7 @@ export default function GalaxyExplorer() {
             const { w, h } = sizeRef.current;
             zoomAt(w / 2, h / 2, 1.3);
           }}
-          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-primary/20"
+          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-brand-magenta/20"
           aria-label="Zoom in"
         >
           +
@@ -529,14 +537,14 @@ export default function GalaxyExplorer() {
             const { w, h } = sizeRef.current;
             zoomAt(w / 2, h / 2, 1 / 1.3);
           }}
-          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-primary/20"
+          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-brand-magenta/20"
           aria-label="Zoom out"
         >
           −
         </button>
         <button
           onClick={resetView}
-          className="px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-primary/20"
+          className="px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-brand-magenta/20"
           aria-label="Reset view"
         >
           rtb
@@ -550,11 +558,11 @@ export default function GalaxyExplorer() {
           style={{ left: hovered.sx, top: hovered.sy - 60 }}
         >
           <div className="flex items-center gap-2">
-            <span className="h-px w-6 bg-primary/70" />
+            <span className="h-px w-6 bg-brand-magenta/70" />
             <span>{hovered.planet.name}</span>
-            <span className="h-px w-6 bg-primary/70" />
+            <span className="h-px w-6 bg-brand-magenta/70" />
           </div>
-          <div className="mt-1 text-center text-[9px] tracking-[0.3em] text-primary/70">
+          <div className="mt-1 text-center text-[9px] tracking-[0.3em] text-brand-magenta/70">
             [ engage ]
           </div>
         </div>
@@ -572,23 +580,23 @@ export default function GalaxyExplorer() {
             <div
               className="relative h-64 w-full overflow-hidden"
               style={{
-                background: `radial-gradient(circle at 35% 40%, ${selected.glow}, transparent 55%), radial-gradient(circle at 65% 65%, ${selected.color}, #02030a 78%)`,
+                background: `radial-gradient(circle at 35% 40%, ${selected.glow}, transparent 55%), radial-gradient(circle at 65% 65%, ${selected.color}, #111111 78%)`,
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
               <button
                 onClick={resetView}
-                className="absolute left-4 top-4 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.3em] text-foreground backdrop-blur transition hover:bg-primary/20"
+                className="absolute left-4 top-4 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.3em] text-foreground backdrop-blur transition hover:bg-brand-magenta/20"
               >
                 ← disengage
               </button>
-              <div className="absolute bottom-4 right-4 font-mono text-[10px] uppercase tracking-[0.3em] text-primary/70">
+              <div className="absolute bottom-4 right-4 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-magenta/70">
                 ↳ target locked
               </div>
             </div>
             <div className="flex-1 space-y-6 px-8 py-6">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary/70">
+                <div className="font-mono text-[10px] uppercase tracking-[0.4em] text-brand-magenta/70">
                   {selected.tagline}
                 </div>
                 <h2 className="mt-2 font-display text-4xl tracking-[0.1em] text-foreground">
@@ -606,7 +614,7 @@ export default function GalaxyExplorer() {
                   ] as const
                 ).map(([k, v]) => (
                   <div key={k} className="grid grid-cols-[110px_1fr] gap-4">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/70">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-brand-magenta/70">
                       {k}
                     </div>
                     <div className="text-sm text-foreground/85">{v}</div>
@@ -631,14 +639,14 @@ function makeStar(spread: boolean): Star3D {
   };
 }
 
-// Realistic star tints (blue/white/yellow/red) roughly correlated by z-seed
+// Summit-palette star tints (parchment/taupe with occasional lemon + magenta)
 function starTint(z: number) {
   const h = (Math.sin(z * 12.9898) * 43758.5453) % 1;
   const r = Math.abs(h);
-  if (r < 0.55) return "255, 255, 245"; // white
-  if (r < 0.75) return "180, 210, 255"; // blue
-  if (r < 0.9) return "255, 230, 180"; // yellow
-  return "255, 180, 150"; // red/orange
+  if (r < 0.55) return "245, 240, 225"; // warm off-white
+  if (r < 0.78) return "193, 176, 166"; // parchment taupe
+  if (r < 0.91) return "240, 249, 95"; // lemon spark
+  return "207, 111, 165"; // magenta spark
 }
 
 function drawPlanet(
@@ -748,7 +756,7 @@ function drawPlanet(
       const mx = sx + Math.cos(ma) * mr;
       const my = sy + Math.sin(ma) * mr * 0.5;
       const msize = Math.max(1.2, r * 0.11);
-      ctx.fillStyle = "#d8d3c8";
+      ctx.fillStyle = "#c1b0a6";
       ctx.beginPath();
       ctx.arc(mx, my, msize, 0, Math.PI * 2);
       ctx.fill();

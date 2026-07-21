@@ -132,19 +132,52 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* ---------- Artificial Global Summit 2026 — brand palette ----------
+ * Sampled from the Summit deck (see Branding Pack §1). Almost monochrome:
+ * warm near-black canvas + parchment-taupe type, with lemon and magenta
+ * held back as sparks. Values in oklch per the convention above.
+ */
 :root {
-  --background: oklch(0.06 0.02 280);
-  --foreground: oklch(0.96 0.01 260);
-  --muted-foreground: oklch(0.65 0.03 260);
-  --border: oklch(0.28 0.04 275 / 60%);
-  --primary: oklch(0.78 0.16 300);
-  --primary-foreground: oklch(0.1 0.02 280);
+  /* Raw brand tokens */
+  --brand-panel: oklch(0.2496 0.0036 48.58); /* #232120 */
+  --brand-panel-hover: oklch(0.2864 0.0046 67.64); /* #2C2A28 */
+  --brand-lemon: oklch(0.9474 0.1733 112.44); /* #F0F95F */
+  --brand-magenta: oklch(0.6668 0.1363 346.58); /* #CF6FA5 */
+  --brand-magenta-dim: oklch(0.5314 0.1424 332.2); /* #9A4890 */
+
+  /* Semantic mapping */
+  --background: oklch(0.178 0.004 60); /* warm near-black ≈ #111111 */
+  --foreground: oklch(0.7688 0.0242 52.59); /* parchment taupe #C1B0A6 */
+  --card: var(--brand-panel);
+  --card-foreground: var(--foreground);
+  --popover: var(--brand-panel);
+  --popover-foreground: var(--foreground);
+  --primary: var(--brand-lemon); /* the single call-out */
+  --primary-foreground: oklch(0.1805 0.0064 55.94); /* #14110F */
+  --secondary: var(--brand-panel-hover);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--brand-panel);
+  --muted-foreground: oklch(0.6624 0.0195 53.83); /* #9D9088 */
+  --accent: var(--brand-magenta-dim);
+  --accent-foreground: oklch(0.92 0.02 60);
+  --destructive: var(--brand-magenta);
+  --destructive-foreground: oklch(0.1805 0.0064 55.94);
+  --border: var(--brand-panel);
+  --input: var(--brand-panel-hover);
+  --ring: var(--brand-magenta);
 }
 
 @theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --font-display: "Orbitron", "Inter", sans-serif;
+  --font-display: "Space Grotesk", "Inter", sans-serif;
+
+  /* Brand sparks → Tailwind utilities (bg-brand-lemon, text-brand-magenta, …) */
+  --color-brand-panel: var(--brand-panel);
+  --color-brand-panel-hover: var(--brand-panel-hover);
+  --color-brand-lemon: var(--brand-lemon);
+  --color-brand-magenta: var(--brand-magenta);
+  --color-brand-magenta-dim: var(--brand-magenta-dim);
 }
 
 @layer base {
@@ -164,34 +197,16 @@
 
 /* ---------- Orbit game animations (ported from orbit) ---------- */
 
+/* Summit canvas ambient — the deck's clean near-black, warmed by two faint
+ * sparks (magenta + lemon) held well back. Static, not twinkling. */
 .starfield {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(1px 1px at 12% 22%, #fff9, transparent 50%),
-    radial-gradient(1px 1px at 28% 68%, #fff6, transparent 50%),
-    radial-gradient(1.5px 1.5px at 41% 15%, #fffb, transparent 50%),
-    radial-gradient(1px 1px at 55% 82%, #fff7, transparent 50%),
-    radial-gradient(2px 2px at 63% 35%, #fff8, transparent 50%),
-    radial-gradient(1px 1px at 74% 58%, #fff6, transparent 50%),
-    radial-gradient(1.5px 1.5px at 86% 25%, #fffa, transparent 50%),
-    radial-gradient(1px 1px at 92% 74%, #fff7, transparent 50%),
-    radial-gradient(1px 1px at 5% 88%, #fff8, transparent 50%),
-    radial-gradient(1.5px 1.5px at 35% 45%, #fff5, transparent 50%),
-    radial-gradient(1px 1px at 68% 92%, #fff9, transparent 50%),
-    radial-gradient(1px 1px at 18% 50%, #fff6, transparent 50%);
-  animation: twinkle 6s ease-in-out infinite alternate;
-}
-
-@keyframes twinkle {
-  from {
-    opacity: 0.55;
-  }
-  to {
-    opacity: 1;
-  }
+    radial-gradient(60% 50% at 18% 12%, rgba(154, 72, 144, 0.1), transparent 70%),
+    radial-gradient(55% 45% at 88% 90%, rgba(240, 249, 95, 0.05), transparent 70%);
 }
 
 .card-scene {
@@ -223,9 +238,9 @@
   background: linear-gradient(
     115deg,
     transparent 35%,
-    rgba(255, 255, 255, 0.14) 45%,
-    rgba(167, 139, 250, 0.22) 50%,
-    rgba(255, 255, 255, 0.14) 55%,
+    rgba(193, 176, 166, 0.12) 45%,
+    rgba(207, 111, 165, 0.26) 50%,
+    rgba(240, 249, 95, 0.14) 55%,
     transparent 65%
   );
   animation: holo-sweep 3.5s ease-in-out infinite;
@@ -244,25 +259,25 @@
 }
 
 .glow-common {
-  box-shadow: 0 0 18px rgba(148, 163, 184, 0.35);
+  box-shadow: 0 0 18px rgba(193, 176, 166, 0.22);
 }
 .glow-rare {
-  box-shadow: 0 0 22px rgba(96, 165, 250, 0.55);
+  box-shadow: 0 0 22px rgba(154, 72, 144, 0.5);
 }
 .glow-epic {
-  box-shadow: 0 0 26px rgba(167, 139, 250, 0.65);
+  box-shadow: 0 0 26px rgba(207, 111, 165, 0.6);
 }
 .glow-legendary {
-  box-shadow: 0 0 34px rgba(251, 191, 36, 0.7);
+  box-shadow: 0 0 34px rgba(240, 249, 95, 0.6);
   animation: legendary-pulse 2.2s ease-in-out infinite;
 }
 @keyframes legendary-pulse {
   0%,
   100% {
-    box-shadow: 0 0 24px rgba(251, 191, 36, 0.55);
+    box-shadow: 0 0 24px rgba(240, 249, 95, 0.45);
   }
   50% {
-    box-shadow: 0 0 44px rgba(251, 191, 36, 0.85);
+    box-shadow: 0 0 44px rgba(240, 249, 95, 0.75);
   }
 }
 
@@ -298,15 +313,15 @@
   background: conic-gradient(
     from 0deg,
     transparent 0deg 12deg,
-    rgba(167, 139, 250, 0.16) 12deg 24deg,
+    rgba(207, 111, 165, 0.16) 12deg 24deg,
     transparent 24deg 36deg,
-    rgba(251, 191, 36, 0.12) 36deg 48deg,
+    rgba(240, 249, 95, 0.12) 36deg 48deg,
     transparent 48deg 60deg,
-    rgba(167, 139, 250, 0.16) 60deg 72deg,
+    rgba(207, 111, 165, 0.16) 60deg 72deg,
     transparent 72deg 84deg,
-    rgba(251, 191, 36, 0.12) 84deg 96deg,
+    rgba(240, 249, 95, 0.12) 84deg 96deg,
     transparent 96deg 108deg,
-    rgba(167, 139, 250, 0.16) 108deg 120deg,
+    rgba(207, 111, 165, 0.16) 108deg 120deg,
     transparent 120deg
   );
   animation: ray-spin 9s linear infinite;
@@ -350,7 +365,7 @@
   content: "";
   position: absolute;
   inset: -18% -30%;
-  border: 2px solid rgba(226, 232, 240, 0.35);
+  border: 2px solid rgba(193, 176, 166, 0.35);
   border-radius: 9999px;
   transform: rotate(-18deg);
 }
@@ -420,6 +435,6 @@
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  background: #34d399;
+  background: #f0f95f;
   animation: ping-dot 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
