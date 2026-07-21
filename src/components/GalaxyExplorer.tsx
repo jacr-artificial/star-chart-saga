@@ -1,17 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PLANETS, type Planet } from "@/data/planets";
 
 type Camera = { x: number; y: number; zoom: number };
 
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 6;
-const GALAXY_SCALE = 520; // multiplier for planet coord -> px
+const GALAXY_SCALE = 520;
+const STAR_COUNT = 900;
+const FOCAL = 380;
+
+type Star3D = { x: number; y: number; z: number; base: number };
 
 export default function GalaxyExplorer() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Camera stored in ref for animation loop; state mirror triggers re-render of UI overlays
   const camRef = useRef<Camera>({ x: 0, y: 0, zoom: 1 });
   const targetCamRef = useRef<Camera>({ x: 0, y: 0, zoom: 1 });
   const [, setTick] = useState(0);
@@ -26,54 +28,20 @@ export default function GalaxyExplorer() {
   const velocityRef = useRef({ vx: 0, vy: 0 });
   const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
 
-  // Starfield layers
-  const starsRef = useRef<
-    Array<{ x: number; y: number; r: number; layer: number; tw: number; twSpeed: number }>
-  >([]);
-  const nebulaRef = useRef<
-    Array<{ x: number; y: number; r: number; color: string; drift: number }>
-  >([]);
-  const shootingRef = useRef<
-    Array<{ x: number; y: number; vx: number; vy: number; life: number; max: number }>
-  >([]);
+  // 3D starfield
+  const starsRef = useRef<Star3D[]>([]);
+  // Warp state — animates when jumping to/from a planet
+  const warpRef = useRef({ active: false, intensity: 0, target: 0, dir: 0 });
+  // motion history to compute streaks from actual movement
+  const camPrevRef = useRef({ x: 0, y: 0, zoom: 1 });
 
-  // Generate stars/nebula once
-  useMemo(() => {
-    const stars: typeof starsRef.current = [];
-    const layers = 4;
-    const counts = [180, 140, 100, 60];
-    for (let l = 0; l < layers; l++) {
-      for (let i = 0; i < counts[l]; i++) {
-        stars.push({
-          x: Math.random() * 2 - 1,
-          y: Math.random() * 2 - 1,
-          r: 0.3 + Math.random() * (l * 0.6 + 0.5),
-          layer: l,
-          tw: Math.random() * Math.PI * 2,
-          twSpeed: 0.5 + Math.random() * 1.5,
-        });
-      }
+  // Init stars in a large cube volume
+  useEffect(() => {
+    const stars: Star3D[] = [];
+    for (let i = 0; i < STAR_COUNT; i++) {
+      stars.push(makeStar(true));
     }
     starsRef.current = stars;
-
-    const nebulas: typeof nebulaRef.current = [];
-    const palette = [
-      "rgba(120, 60, 190, 0.22)",
-      "rgba(40, 120, 200, 0.20)",
-      "rgba(30, 180, 180, 0.16)",
-      "rgba(180, 60, 140, 0.18)",
-      "rgba(60, 80, 200, 0.20)",
-    ];
-    for (let i = 0; i < 7; i++) {
-      nebulas.push({
-        x: Math.random() * 2 - 1,
-        y: Math.random() * 2 - 1,
-        r: 400 + Math.random() * 700,
-        color: palette[i % palette.length],
-        drift: Math.random() * Math.PI * 2,
-      });
-    }
-    nebulaRef.current = nebulas;
   }, []);
 
   // Resize
@@ -94,7 +62,6 @@ export default function GalaxyExplorer() {
     return () => window.removeEventListener("resize", resize);
   }, []);
 
-  // Convert galaxy coord -> screen
   const worldToScreen = useCallback((wx: number, wy: number) => {
     const { w, h } = sizeRef.current;
     const cam = camRef.current;
@@ -113,11 +80,9 @@ export default function GalaxyExplorer() {
     };
   }, []);
 
-  // Compute a planet's current world position (with slow orbital drift)
   const planetWorldPos = useCallback((p: Planet, t: number) => {
     const baseX = p.x * GALAXY_SCALE;
     const baseY = p.y * GALAXY_SCALE;
-    // gentle orbital drift around center
     const radius = Math.hypot(baseX, baseY);
     const angle0 = Math.atan2(baseY, baseX);
     const angle = angle0 + p.orbitSpeed * t;
@@ -126,7 +91,6 @@ export default function GalaxyExplorer() {
 
   const hitTestPlanet = useCallback(
     (sx: number, sy: number, t: number): Planet | null => {
-      // iterate front-to-back (higher depth first)
       const sorted = [...PLANETS].sort((a, b) => b.depth - a.depth);
       for (const p of sorted) {
         const wp = planetWorldPos(p, t);
@@ -151,15 +115,13 @@ export default function GalaxyExplorer() {
       last = now;
       elapsed += dt;
 
-      // Ease camera toward target
       const cam = camRef.current;
       const tgt = targetCamRef.current;
-      const ease = 1 - Math.pow(0.001, dt); // smooth
+      const ease = 1 - Math.pow(0.001, dt);
       cam.x += (tgt.x - cam.x) * ease;
       cam.y += (tgt.y - cam.y) * ease;
       cam.zoom += (tgt.zoom - cam.zoom) * ease;
 
-      // Inertia when not dragging
       if (!draggingRef.current) {
         const v = velocityRef.current;
         if (Math.abs(v.vx) > 0.01 || Math.abs(v.vy) > 0.01) {
@@ -170,210 +132,172 @@ export default function GalaxyExplorer() {
         }
       }
 
-      draw(elapsed);
-
-      // Occasionally spawn a shooting star
-      if (Math.random() < 0.004) {
-        const { w, h } = sizeRef.current;
-        const fromLeft = Math.random() < 0.5;
-        shootingRef.current.push({
-          x: fromLeft ? -50 : w + 50,
-          y: Math.random() * h * 0.6,
-          vx: (fromLeft ? 1 : -1) * (400 + Math.random() * 300),
-          vy: 60 + Math.random() * 120,
-          life: 0,
-          max: 1.2,
-        });
+      // Update warp intensity
+      const warp = warpRef.current;
+      const wEase = 1 - Math.pow(0.0005, dt);
+      warp.intensity += (warp.target - warp.intensity) * wEase;
+      if (warp.target > 0 && warp.intensity > 0.85) {
+        // arrival: kill the warp
+        warp.target = 0;
       }
+
+      draw(elapsed, dt);
+
+      camPrevRef.current = { x: cam.x, y: cam.y, zoom: cam.zoom };
 
       setTick((t) => (t + 1) % 1000000);
       raf = requestAnimationFrame(render);
     };
 
-    const draw = (t: number) => {
+    const draw = (t: number, dt: number) => {
       const canvas = canvasRef.current!;
       const ctx = canvas.getContext("2d")!;
       const { w, h, dpr } = sizeRef.current;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Background
-      const bg = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.8);
-      bg.addColorStop(0, "#0a0716");
-      bg.addColorStop(0.6, "#05030d");
-      bg.addColorStop(1, "#020106");
-      ctx.fillStyle = bg;
+      // Deep space background — near black with a faint galactic haze
+      ctx.fillStyle = "#02030a";
       ctx.fillRect(0, 0, w, h);
 
-      const cam = camRef.current;
-
-      // Nebulas (parallax slow)
+      // Faint milky-way band (subtle diagonal)
+      ctx.save();
       ctx.globalCompositeOperation = "screen";
-      for (const n of nebulaRef.current) {
-        const px = w / 2 + (n.x * 800 - cam.x * 0.15) + Math.cos(t * 0.05 + n.drift) * 20;
-        const py = h / 2 + (n.y * 800 - cam.y * 0.15) + Math.sin(t * 0.04 + n.drift) * 20;
-        const g = ctx.createRadialGradient(px, py, 0, px, py, n.r);
-        g.addColorStop(0, n.color);
+      const bandGrad = ctx.createLinearGradient(0, h * 0.2, w, h * 0.8);
+      bandGrad.addColorStop(0, "rgba(30,20,60,0)");
+      bandGrad.addColorStop(0.5, "rgba(60,40,110,0.35)");
+      bandGrad.addColorStop(1, "rgba(20,30,70,0)");
+      ctx.fillStyle = bandGrad;
+      ctx.fillRect(0, 0, w, h);
+      // faint dust puffs
+      const puffs = [
+        { x: 0.25, y: 0.4, r: 380, c: "rgba(80,40,140,0.18)" },
+        { x: 0.75, y: 0.6, r: 460, c: "rgba(30,80,140,0.15)" },
+        { x: 0.55, y: 0.25, r: 300, c: "rgba(140,60,100,0.12)" },
+      ];
+      for (const p of puffs) {
+        const g = ctx.createRadialGradient(w * p.x, h * p.y, 0, w * p.x, h * p.y, p.r);
+        g.addColorStop(0, p.c);
         g.addColorStop(1, "rgba(0,0,0,0)");
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, w, h);
       }
-      ctx.globalCompositeOperation = "source-over";
+      ctx.restore();
 
-      // Stars with parallax by layer
-      for (const s of starsRef.current) {
-        const parallax = 0.15 + s.layer * 0.25;
-        const px = ((s.x * 2000 - cam.x * parallax) % 2000 + 3000) % 2000 - 1000 + w / 2;
-        const py = ((s.y * 2000 - cam.y * parallax) % 2000 + 3000) % 2000 - 1000 + h / 2;
-        if (px < -5 || px > w + 5 || py < -5 || py > h + 5) continue;
-        const tw = 0.6 + 0.4 * Math.sin(t * s.twSpeed + s.tw);
-        ctx.globalAlpha = tw * (0.4 + s.layer * 0.2);
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(px, py, s.r, 0, Math.PI * 2);
-        ctx.fill();
+      const cam = camRef.current;
+      const prev = camPrevRef.current;
+      const dxPan = (cam.x - prev.x) * cam.zoom;
+      const dyPan = (cam.y - prev.y) * cam.zoom;
+      const zoomDelta = cam.zoom / (prev.zoom || 1);
+
+      const warp = warpRef.current.intensity;
+
+      // 3D starfield — perspective projection with streaks
+      const cx = w / 2;
+      const cy = h / 2;
+      const stars = starsRef.current;
+
+      for (let i = 0; i < stars.length; i++) {
+        const s = stars[i];
+
+        // Drift stars toward camera when warping (creates hyperspace)
+        if (warp > 0.02) {
+          s.z -= (300 + warp * 3800) * dt;
+          if (s.z < 1) {
+            const ns = makeStar(false);
+            s.x = ns.x;
+            s.y = ns.y;
+            s.z = ns.z;
+            s.base = ns.base;
+          }
+        }
+
+        const k = FOCAL / s.z;
+        const px = cx + s.x * k;
+        const py = cy + s.y * k;
+
+        if (px < -20 || px > w + 20 || py < -20 || py > h + 20) continue;
+
+        // Streak vector = pan motion (parallax by 1/z) + warp radial
+        const par = 1 - Math.min(1, s.z / 900); // near = more parallax
+        let ex = px - dxPan * (0.3 + par * 0.9);
+        let ey = py - dyPan * (0.3 + par * 0.9);
+
+        // Warp: streak radially outward from center
+        if (warp > 0.02) {
+          const rx = px - cx;
+          const ry = py - cy;
+          const len = Math.hypot(rx, ry) || 1;
+          const streakLen = 6 + warp * warp * 220 * (0.4 + par);
+          ex = px - (rx / len) * streakLen;
+          ey = py - (ry / len) * streakLen;
+        }
+
+        const size = Math.max(0.4, (1 - s.z / 1400) * s.base * (1 + warp * 0.5));
+        const brightness = Math.min(1, (1 - s.z / 1400) + warp * 0.4);
+
+        const dist = Math.hypot(ex - px, ey - py);
+        if (dist > 1.2) {
+          // draw as streak
+          ctx.strokeStyle = `rgba(${starTint(s.z)}, ${brightness})`;
+          ctx.lineWidth = size;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(ex, ey);
+          ctx.lineTo(px, py);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = `rgba(${starTint(s.z)}, ${brightness * 0.9})`;
+          ctx.beginPath();
+          ctx.arc(px, py, size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        void zoomDelta; // suppress unused
       }
-      ctx.globalAlpha = 1;
 
-      // Spiral galaxy hint (faint arms)
+      // Warp bloom overlay
+      if (warp > 0.05) {
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.6);
+        g.addColorStop(0, `rgba(180,210,255,${warp * 0.35})`);
+        g.addColorStop(0.4, `rgba(120,140,220,${warp * 0.12})`);
+        g.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      // Distant galaxy core glow (subtle, not cartoony)
       ctx.save();
       ctx.translate(w / 2 - cam.x * cam.zoom, h / 2 - cam.y * cam.zoom);
       ctx.scale(cam.zoom, cam.zoom);
       ctx.globalCompositeOperation = "screen";
-      for (let arm = 0; arm < 3; arm++) {
-        ctx.beginPath();
-        const armOffset = (arm * Math.PI * 2) / 3;
-        for (let i = 0; i < 200; i++) {
-          const a = i * 0.08 + armOffset + t * 0.005;
-          const r = i * 4;
-          const x = Math.cos(a) * r;
-          const y = Math.sin(a) * r;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, 800);
-        grad.addColorStop(0, "rgba(180,140,255,0.25)");
-        grad.addColorStop(1, "rgba(60,30,120,0)");
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 40;
-        ctx.stroke();
-      }
-      // core glow
-      const core = ctx.createRadialGradient(0, 0, 0, 0, 0, 260);
-      core.addColorStop(0, "rgba(255,220,180,0.55)");
-      core.addColorStop(0.4, "rgba(200,120,220,0.25)");
+      const core = ctx.createRadialGradient(0, 0, 0, 0, 0, 700);
+      core.addColorStop(0, "rgba(255,220,180,0.25)");
+      core.addColorStop(0.25, "rgba(200,140,220,0.10)");
       core.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = core;
       ctx.beginPath();
-      ctx.arc(0, 0, 260, 0, Math.PI * 2);
+      ctx.arc(0, 0, 700, 0, Math.PI * 2);
       ctx.fill();
       ctx.globalCompositeOperation = "source-over";
       ctx.restore();
 
-      // Planets — sort back-to-front by depth
-      const sorted = [...PLANETS].sort((a, b) => a.depth - b.depth);
-      for (const p of sorted) {
-        const wp = planetWorldPos(p, t);
-        const { sx, sy } = worldToScreen(wp.x, wp.y);
-        const depthMul = 0.6 + p.depth * 0.6;
-        const r = p.size * cam.zoom * depthMul;
-        if (sx < -r * 3 || sx > w + r * 3 || sy < -r * 3 || sy > h + r * 3) continue;
+      // Planets — hide during peak warp
+      const planetAlpha = 1 - Math.min(1, warp * 1.4);
+      if (planetAlpha > 0.02) {
+        ctx.globalAlpha = planetAlpha;
+        const sorted = [...PLANETS].sort((a, b) => a.depth - b.depth);
+        for (const p of sorted) {
+          const wp = planetWorldPos(p, t);
+          const { sx, sy } = worldToScreen(wp.x, wp.y);
+          const depthMul = 0.6 + p.depth * 0.6;
+          const r = p.size * cam.zoom * depthMul;
+          if (sx < -r * 3 || sx > w + r * 3 || sy < -r * 3 || sy > h + r * 3) continue;
 
-        // Glow
-        const glowR = r * 2.6;
-        const pulse = 0.9 + 0.1 * Math.sin(t * 1.5 + p.orbitSpeed * 100);
-        const g = ctx.createRadialGradient(sx, sy, r * 0.4, sx, sy, glowR);
-        g.addColorStop(0, hexA(p.glow, 0.55 * pulse));
-        g.addColorStop(0.4, hexA(p.glow, 0.2 * pulse));
-        g.addColorStop(1, hexA(p.glow, 0));
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(sx, sy, glowR, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Rings (behind body)
-        if (p.hasRings) {
-          ctx.save();
-          ctx.translate(sx, sy);
-          ctx.rotate(-0.4 + p.spinSpeed * 0.1);
-          ctx.scale(1, 0.32);
-          ctx.strokeStyle = hexA(p.ringColor || p.glow, 0.55);
-          ctx.lineWidth = Math.max(1.5, r * 0.12);
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 1.7, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.strokeStyle = hexA(p.ringColor || p.glow, 0.3);
-          ctx.lineWidth = Math.max(1, r * 0.06);
-          ctx.beginPath();
-          ctx.arc(0, 0, r * 1.95, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
+          drawPlanet(ctx, p, sx, sy, r, t, hovered?.planet.id === p.id);
         }
-
-        // Body
-        const body = ctx.createRadialGradient(sx - r * 0.4, sy - r * 0.5, r * 0.1, sx, sy, r);
-        body.addColorStop(0, lighten(p.color, 0.35));
-        body.addColorStop(0.55, p.color);
-        body.addColorStop(1, darken(p.color, 0.55));
-        ctx.fillStyle = body;
-        ctx.beginPath();
-        ctx.arc(sx, sy, r, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Terminator shadow
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(sx, sy, r, 0, Math.PI * 2);
-        ctx.clip();
-        const shadow = ctx.createRadialGradient(sx + r * 0.7, sy + r * 0.6, r * 0.1, sx + r * 0.4, sy + r * 0.3, r * 1.6);
-        shadow.addColorStop(0, "rgba(0,0,0,0)");
-        shadow.addColorStop(1, "rgba(0,0,0,0.55)");
-        ctx.fillStyle = shadow;
-        ctx.fillRect(sx - r, sy - r, r * 2, r * 2);
-        ctx.restore();
-
-        // Moons
-        if (p.moons && p.moons > 0) {
-          for (let i = 0; i < p.moons; i++) {
-            const ma = t * (0.6 + i * 0.4) + i * 1.7 + p.orbitSpeed * 30;
-            const mr = r * (1.9 + i * 0.5);
-            const mx = sx + Math.cos(ma) * mr;
-            const my = sy + Math.sin(ma) * mr * 0.5;
-            const msize = Math.max(1.2, r * 0.12);
-            ctx.fillStyle = "#d8d3c8";
-            ctx.beginPath();
-            ctx.arc(mx, my, msize, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-
-        // Hover ring
-        if (hovered?.planet.id === p.id) {
-          ctx.strokeStyle = hexA(p.glow, 0.9);
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.arc(sx, sy, r + 6, 0, Math.PI * 2);
-          ctx.stroke();
-        }
+        ctx.globalAlpha = 1;
       }
 
-      // Shooting stars
-      const alive: typeof shootingRef.current = [];
-      for (const s of shootingRef.current) {
-        s.life += 0.016;
-        s.x += s.vx * 0.016;
-        s.y += s.vy * 0.016;
-        const a = Math.max(0, 1 - s.life / s.max);
-        ctx.strokeStyle = `rgba(255,255,255,${a})`;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(s.x - s.vx * 0.05, s.y - s.vy * 0.05);
-        ctx.stroke();
-        if (s.life < s.max) alive.push(s);
-      }
-      shootingRef.current = alive;
-
-      // Update hovered label position tracking (for DOM label)
       if (hovered) {
         const wp = planetWorldPos(hovered.planet, t);
         const scr = worldToScreen(wp.x, wp.y);
@@ -391,11 +315,8 @@ export default function GalaxyExplorer() {
   // Pointer handlers
   useEffect(() => {
     const canvas = canvasRef.current!;
-    let elapsedRef = { t: 0 };
-    const now = () => performance.now() / 1000;
-    let startT = now();
-    const getT = () => now() - startT;
-    elapsedRef.t = 0;
+    const startT = performance.now() / 1000;
+    const getT = () => performance.now() / 1000 - startT;
 
     const onDown = (e: PointerEvent) => {
       (e.target as Element).setPointerCapture?.(e.pointerId);
@@ -418,7 +339,6 @@ export default function GalaxyExplorer() {
         velocityRef.current = { vx: dx, vy: dy };
         lastPointerRef.current = { x: e.clientX, y: e.clientY };
       } else {
-        // hover test
         const rect = canvas.getBoundingClientRect();
         const sx = e.clientX - rect.left;
         const sy = e.clientY - rect.top;
@@ -508,46 +428,77 @@ export default function GalaxyExplorer() {
   };
 
   const focusPlanet = (p: Planet) => {
-    // approximate current world pos (use base pos — orbit is slow)
-    const wp = { x: p.x * GALAXY_SCALE, y: p.y * GALAXY_SCALE };
-    targetCamRef.current.x = wp.x;
-    targetCamRef.current.y = wp.y;
-    targetCamRef.current.zoom = Math.min(MAX_ZOOM, 2.6);
-    setSelected(p);
+    // Kick off warp
+    warpRef.current.target = 1;
+    warpRef.current.intensity = Math.max(warpRef.current.intensity, 0.05);
+    setTimeout(() => {
+      const wp = { x: p.x * GALAXY_SCALE, y: p.y * GALAXY_SCALE };
+      targetCamRef.current.x = wp.x;
+      targetCamRef.current.y = wp.y;
+      targetCamRef.current.zoom = Math.min(MAX_ZOOM, 3.2);
+      camRef.current.x = wp.x;
+      camRef.current.y = wp.y;
+      camRef.current.zoom = 3.2;
+      setSelected(p);
+    }, 550);
   };
 
   const resetView = () => {
-    targetCamRef.current = { x: 0, y: 0, zoom: 1 };
-    setSelected(null);
+    warpRef.current.target = 1;
+    warpRef.current.intensity = Math.max(warpRef.current.intensity, 0.05);
+    setTimeout(() => {
+      targetCamRef.current = { x: 0, y: 0, zoom: 1 };
+      camRef.current = { x: 0, y: 0, zoom: 1 };
+      setSelected(null);
+    }, 500);
   };
 
   return (
-    <div ref={containerRef} className="relative h-screen w-screen overflow-hidden bg-background">
+    <div className="relative h-screen w-screen overflow-hidden bg-background">
       <canvas ref={canvasRef} className="absolute inset-0 block touch-none" />
 
-      {/* Header */}
+      {/* Vignette */}
+      <div
+        className="pointer-events-none absolute inset-0 z-[1]"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%)",
+        }}
+      />
+
+      {/* HUD Header */}
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-start justify-between p-6">
         <div className="pointer-events-auto">
-          <div className="font-display text-xs uppercase tracking-[0.4em] text-muted-foreground">
-            The Aetherion Archive
+          <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-primary/80">
+            ✦ Aetherion Navigation Array
           </div>
-          <div className="mt-1 font-display text-2xl tracking-wide text-foreground">
-            Galaxy Explorer
+          <div className="mt-1 font-display text-2xl tracking-[0.15em] text-foreground">
+            HYPERLANE CHART
           </div>
         </div>
-        <div className="pointer-events-auto max-w-[260px] text-right font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-          drag to pan · scroll to zoom · click a world
+        <div className="pointer-events-auto text-right font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+          <div>sector 7-G · scan mode</div>
+          <div className="mt-1 text-primary/70">drag · scroll · engage</div>
         </div>
       </div>
 
+      {/* Bottom-left HUD */}
+      <div className="pointer-events-none absolute bottom-6 left-6 z-10 font-mono text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary/80" />
+          nav.link stable
+        </div>
+        <div className="mt-1 opacity-60">{PLANETS.length} worlds indexed</div>
+      </div>
+
       {/* Zoom controls */}
-      <div className="absolute bottom-6 right-6 z-10 flex flex-col overflow-hidden rounded-md border border-border/60 bg-background/40 backdrop-blur">
+      <div className="absolute bottom-6 right-6 z-10 flex flex-col overflow-hidden rounded-sm border border-border/60 bg-background/40 font-mono backdrop-blur">
         <button
           onClick={() => {
             const { w, h } = sizeRef.current;
             zoomAt(w / 2, h / 2, 1.3);
           }}
-          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-foreground/10"
+          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-primary/20"
           aria-label="Zoom in"
         >
           +
@@ -557,33 +508,40 @@ export default function GalaxyExplorer() {
             const { w, h } = sizeRef.current;
             zoomAt(w / 2, h / 2, 1 / 1.3);
           }}
-          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-foreground/10"
+          className="border-b border-border/60 px-3 py-2 text-sm text-foreground/80 transition hover:bg-primary/20"
           aria-label="Zoom out"
         >
           −
         </button>
         <button
           onClick={resetView}
-          className="px-3 py-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition hover:bg-foreground/10"
+          className="px-3 py-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition hover:bg-primary/20"
           aria-label="Reset view"
         >
-          reset
+          rtb
         </button>
       </div>
 
       {/* Hover label */}
       {hovered && !selected && (
         <div
-          className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-sm border border-border/60 bg-background/70 px-3 py-1 font-display text-xs uppercase tracking-[0.3em] text-foreground backdrop-blur"
+          className="pointer-events-none absolute z-10 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.4em] text-foreground"
           style={{ left: hovered.sx, top: hovered.sy - 60 }}
         >
-          {hovered.planet.name}
+          <div className="flex items-center gap-2">
+            <span className="h-px w-6 bg-primary/70" />
+            <span>{hovered.planet.name}</span>
+            <span className="h-px w-6 bg-primary/70" />
+          </div>
+          <div className="mt-1 text-center text-[9px] tracking-[0.3em] text-primary/70">
+            [ engage ]
+          </div>
         </div>
       )}
 
       {/* Detail panel */}
       <div
-        className={`absolute right-0 top-0 z-20 h-full w-full max-w-md transform border-l border-border/60 bg-background/85 backdrop-blur-xl transition-transform duration-500 ease-out ${
+        className={`absolute right-0 top-0 z-20 h-full w-full max-w-md transform border-l border-border/60 bg-background/90 backdrop-blur-xl transition-transform duration-500 ease-out ${
           selected ? "translate-x-0" : "translate-x-full"
         }`}
         aria-hidden={!selected}
@@ -591,25 +549,28 @@ export default function GalaxyExplorer() {
         {selected && (
           <div className="flex h-full flex-col overflow-y-auto">
             <div
-              className="relative h-56 w-full overflow-hidden"
+              className="relative h-64 w-full overflow-hidden"
               style={{
-                background: `radial-gradient(circle at 30% 40%, ${selected.glow}, transparent 60%), radial-gradient(circle at 70% 70%, ${selected.color}, #05030d 75%)`,
+                background: `radial-gradient(circle at 35% 40%, ${selected.glow}, transparent 55%), radial-gradient(circle at 65% 65%, ${selected.color}, #02030a 78%)`,
               }}
             >
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
               <button
                 onClick={resetView}
-                className="absolute left-4 top-4 rounded-sm border border-border/60 bg-background/50 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-foreground backdrop-blur transition hover:bg-foreground/10"
+                className="absolute left-4 top-4 rounded-sm border border-border/60 bg-background/60 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.3em] text-foreground backdrop-blur transition hover:bg-primary/20"
               >
-                ← Back to galaxy
+                ← disengage
               </button>
+              <div className="absolute bottom-4 right-4 font-mono text-[10px] uppercase tracking-[0.3em] text-primary/70">
+                ↳ target locked
+              </div>
             </div>
             <div className="flex-1 space-y-6 px-8 py-6">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.4em] text-muted-foreground">
+                <div className="font-mono text-[10px] uppercase tracking-[0.4em] text-primary/70">
                   {selected.tagline}
                 </div>
-                <h2 className="mt-2 font-display text-4xl tracking-wide text-foreground">
+                <h2 className="mt-2 font-display text-4xl tracking-[0.1em] text-foreground">
                   {selected.name}
                 </h2>
               </div>
@@ -624,7 +585,7 @@ export default function GalaxyExplorer() {
                   ] as const
                 ).map(([k, v]) => (
                   <div key={k} className="grid grid-cols-[110px_1fr] gap-4">
-                    <div className="font-mono text-[10px] uppercase tracking-[0.25em] text-muted-foreground">
+                    <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary/70">
                       {k}
                     </div>
                     <div className="text-sm text-foreground/85">{v}</div>
@@ -639,7 +600,193 @@ export default function GalaxyExplorer() {
   );
 }
 
-// --- color utils ---
+// ---- helpers ----
+function makeStar(spread: boolean): Star3D {
+  return {
+    x: (Math.random() - 0.5) * 2400,
+    y: (Math.random() - 0.5) * 2400,
+    z: spread ? 20 + Math.random() * 1400 : 900 + Math.random() * 500,
+    base: 0.6 + Math.random() * 1.6,
+  };
+}
+
+// Realistic star tints (blue/white/yellow/red) roughly correlated by z-seed
+function starTint(z: number) {
+  const h = (Math.sin(z * 12.9898) * 43758.5453) % 1;
+  const r = Math.abs(h);
+  if (r < 0.55) return "255, 255, 245"; // white
+  if (r < 0.75) return "180, 210, 255"; // blue
+  if (r < 0.9) return "255, 230, 180"; // yellow
+  return "255, 180, 150"; // red/orange
+}
+
+function drawPlanet(
+  ctx: CanvasRenderingContext2D,
+  p: Planet,
+  sx: number,
+  sy: number,
+  r: number,
+  t: number,
+  isHover: boolean,
+) {
+  // Atmospheric halo
+  const glowR = r * 2.4;
+  const pulse = 0.9 + 0.1 * Math.sin(t * 1.5 + p.orbitSpeed * 100);
+  const g = ctx.createRadialGradient(sx, sy, r * 0.9, sx, sy, glowR);
+  g.addColorStop(0, hexA(p.glow, 0.45 * pulse));
+  g.addColorStop(0.35, hexA(p.glow, 0.15 * pulse));
+  g.addColorStop(1, hexA(p.glow, 0));
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(sx, sy, glowR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Back-half of ring
+  if (p.hasRings) {
+    drawRing(ctx, p, sx, sy, r, t, true);
+  }
+
+  // Body base
+  const body = ctx.createRadialGradient(
+    sx - r * 0.45,
+    sy - r * 0.55,
+    r * 0.05,
+    sx,
+    sy,
+    r * 1.05,
+  );
+  body.addColorStop(0, lighten(p.color, 0.45));
+  body.addColorStop(0.5, p.color);
+  body.addColorStop(1, darken(p.color, 0.7));
+  ctx.fillStyle = body;
+  ctx.beginPath();
+  ctx.arc(sx, sy, r, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Surface bands (subtle) — clipped to sphere
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sx, sy, r, 0, Math.PI * 2);
+  ctx.clip();
+  const bandCount = 5;
+  for (let i = 0; i < bandCount; i++) {
+    const yOff = -r + (i + 0.5) * ((r * 2) / bandCount) + Math.sin(t * 0.1 + i) * 2;
+    ctx.globalAlpha = 0.08;
+    ctx.fillStyle = i % 2 ? lighten(p.color, 0.2) : darken(p.color, 0.25);
+    ctx.fillRect(sx - r, sy + yOff - r * 0.06, r * 2, r * 0.12);
+  }
+  ctx.globalAlpha = 1;
+
+  // Night-side terminator
+  const shadow = ctx.createRadialGradient(
+    sx + r * 0.6,
+    sy + r * 0.55,
+    r * 0.1,
+    sx + r * 0.35,
+    sy + r * 0.3,
+    r * 1.5,
+  );
+  shadow.addColorStop(0, "rgba(0,0,0,0)");
+  shadow.addColorStop(0.6, "rgba(0,0,0,0.35)");
+  shadow.addColorStop(1, "rgba(0,0,0,0.75)");
+  ctx.fillStyle = shadow;
+  ctx.fillRect(sx - r, sy - r, r * 2, r * 2);
+  ctx.restore();
+
+  // Atmosphere rim (fresnel)
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sx, sy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = hexA(p.glow, 0.55);
+  ctx.lineWidth = Math.max(0.8, r * 0.05);
+  ctx.stroke();
+  ctx.restore();
+
+  // Specular highlight
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sx, sy, r, 0, Math.PI * 2);
+  ctx.clip();
+  const spec = ctx.createRadialGradient(sx - r * 0.5, sy - r * 0.55, 0, sx - r * 0.5, sy - r * 0.55, r * 0.6);
+  spec.addColorStop(0, "rgba(255,255,255,0.35)");
+  spec.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = spec;
+  ctx.fillRect(sx - r, sy - r, r * 2, r * 2);
+  ctx.restore();
+
+  // Front half of ring
+  if (p.hasRings) {
+    drawRing(ctx, p, sx, sy, r, t, false);
+  }
+
+  // Moons
+  if (p.moons && p.moons > 0) {
+    for (let i = 0; i < p.moons; i++) {
+      const ma = t * (0.6 + i * 0.4) + i * 1.7 + p.orbitSpeed * 30;
+      const mr = r * (1.9 + i * 0.5);
+      const mx = sx + Math.cos(ma) * mr;
+      const my = sy + Math.sin(ma) * mr * 0.5;
+      const msize = Math.max(1.2, r * 0.11);
+      ctx.fillStyle = "#d8d3c8";
+      ctx.beginPath();
+      ctx.arc(mx, my, msize, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Hover targeting reticle (sci-fi HUD)
+  if (isHover) {
+    ctx.strokeStyle = hexA(p.glow, 0.9);
+    ctx.lineWidth = 1;
+    const rr = r + 14;
+    // corner brackets
+    const bracket = (ang: number) => {
+      const cxp = sx + Math.cos(ang) * rr;
+      const cyp = sy + Math.sin(ang) * rr;
+      const a1 = ang + 0.25;
+      const a2 = ang - 0.25;
+      ctx.beginPath();
+      ctx.moveTo(sx + Math.cos(a1) * rr, sy + Math.sin(a1) * rr);
+      ctx.lineTo(cxp, cyp);
+      ctx.lineTo(sx + Math.cos(a2) * rr, sy + Math.sin(a2) * rr);
+      ctx.stroke();
+    };
+    bracket(-Math.PI / 4);
+    bracket(-Math.PI * 3 / 4);
+    bracket(Math.PI / 4);
+    bracket(Math.PI * 3 / 4);
+  }
+}
+
+function drawRing(
+  ctx: CanvasRenderingContext2D,
+  p: Planet,
+  sx: number,
+  sy: number,
+  r: number,
+  t: number,
+  backHalf: boolean,
+) {
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(-0.4 + p.spinSpeed * 0.05);
+  ctx.scale(1, 0.28);
+  ctx.beginPath();
+  if (backHalf) ctx.arc(0, 0, r * 1.75, Math.PI, Math.PI * 2);
+  else ctx.arc(0, 0, r * 1.75, 0, Math.PI);
+  ctx.strokeStyle = hexA(p.ringColor || p.glow, 0.55);
+  ctx.lineWidth = Math.max(1.5, r * 0.13);
+  ctx.stroke();
+  ctx.beginPath();
+  if (backHalf) ctx.arc(0, 0, r * 2.05, Math.PI, Math.PI * 2);
+  else ctx.arc(0, 0, r * 2.05, 0, Math.PI);
+  ctx.strokeStyle = hexA(p.ringColor || p.glow, 0.28);
+  ctx.lineWidth = Math.max(1, r * 0.06);
+  ctx.stroke();
+  ctx.restore();
+  void t;
+}
+
 function hexA(hex: string, a: number) {
   const { r, g, b } = parseHex(hex);
   return `rgba(${r}, ${g}, ${b}, ${a})`;
