@@ -191,7 +191,10 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     overscroll-behavior: none;
-    overflow-x: hidden;
+    overflow-x: clip;
+    overflow-y: auto;
+    height: auto;
+    min-height: 100%;
   }
 }
 
@@ -211,6 +214,7 @@
 
 .card-scene {
   perspective: 1200px;
+  touch-action: pan-y;
 }
 .card-inner {
   transform-style: preserve-3d;
@@ -437,4 +441,29 @@
   border-radius: 9999px;
   background: #f0f95f;
   animation: ping-dot 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Hyperspace "swoosh" flash when engaging a planet in the orrery */
+@keyframes warp-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  25% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.9);
+  }
+}
+.warp-flash {
+  background: radial-gradient(
+    circle at center,
+    rgba(240, 235, 205, 0.5) 0%,
+    rgba(207, 111, 165, 0.28) 30%,
+    rgba(207, 111, 165, 0) 62%
+  );
+  animation: warp-flash 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+  mix-blend-mode: screen;
 }

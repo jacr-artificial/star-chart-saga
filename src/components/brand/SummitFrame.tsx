@@ -15,10 +15,9 @@ export default function SummitFrame({
   className?: string;
 }) {
   return (
-    <div className="relative min-h-dvh bg-background p-3 sm:p-4">
-      <div className="starfield" />
+    <div className="relative min-h-dvh p-3 sm:p-4">
       <div
-        className={`relative min-h-[calc(100dvh-1.5rem)] rounded-[1.75rem] rounded-tl-none border border-brand-panel bg-brand-panel/10 sm:min-h-[calc(100dvh-2rem)] ${className}`}
+        className={`relative min-h-[calc(100dvh-1.5rem)] rounded-[1.75rem] rounded-tl-none border border-brand-panel bg-background sm:min-h-[calc(100dvh-2rem)] ${className}`}
       >
         {/* Diagonal notch — the corner cut away rather than rounded. */}
         <span

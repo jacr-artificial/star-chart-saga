@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 220" font-family="Helvetica, Arial, sans-serif">
+  <rect width="680" height="220" fill="#ffffff"/>
+  <!-- Umbrella struck by lightning -->
+  <g transform="translate(48,36)">
+    <circle cx="70" cy="74" r="70" fill="#7a1f1f"/>
+    <!-- umbrella canopy -->
+    <path d="M28 72 Q70 22 112 72 Q98 62 91 72 Q84 62 77 72 Q70 62 63 72 Q56 62 49 72 Q42 62 28 72 Z" fill="#f3e9d8"/>
+    <line x1="70" y1="72" x2="70" y2="112" stroke="#f3e9d8" stroke-width="6" stroke-linecap="round"/>
+    <path d="M70 112 Q70 124 58 122" stroke="#f3e9d8" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- lightning bolt -->
+    <path d="M86 24 L64 66 L80 66 L58 108 L98 60 L80 60 Z" fill="#e8b430" stroke="#7a1f1f" stroke-width="3"/>
+  </g>
+  <g transform="translate(216,0)">
+    <text x="0" y="88" font-size="38" font-weight="bold" fill="#7a1f1f" letter-spacing="1">ACT OF GOD</text>
+    <text x="0" y="132" font-size="30" font-weight="300" fill="#4a4a4a" letter-spacing="6">UNDERWRITERS</text>
+    <line x1="2" y1="150" x2="400" y2="150" stroke="#e8b430" stroke-width="3"/>
+    <text x="2" y="178" font-size="16" fill="#7d7d7d" letter-spacing="2">REGRETTABLY, NOT COVERED. EST. 1908</text>
+  </g>
+</svg>

@@ -1,48 +1,22 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useStore } from "@/store";
-import { QUESTIONS } from "@/data/orbit";
+import { PLANETS, QUESTIONS } from "@/data/orbit";
 
 const Orrery = lazy(() => import("@/components/Orrery"));
 
 export default function GalaxyMap() {
-  const { xp, unlockedIds, colleagues, openPlanet, go, answered, autoDetect, enableAutoDetect } =
-    useStore();
+  const { openPlanet, answered } = useStore();
+  const [focusedId, setFocusedId] = useState<string | null>(null);
 
-  const collected = colleagues.filter((c) => unlockedIds.has(c.id)).length;
   const riskaraPct = Math.round(
     (Object.values(answered).filter((a) => a.correct).length / QUESTIONS.length) * 100,
   );
 
+  const focused = focusedId ? (PLANETS.find((p) => p.id === focusedId) ?? null) : null;
+
   return (
-    <div className="relative z-10 max-w-6xl mx-auto px-6 py-8">
-      <div className="flex items-start justify-between flex-wrap gap-4">
-        <div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.4em] text-brand-magenta/70">
-            navigation hub
-          </div>
-          <h1 className="text-2xl font-bold font-display tracking-wide mt-1">Your galaxy</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Spawned on <span className="text-brand-lemon">Riskara</span> · {collected} colleague
-            {collected === 1 ? "" : "s"} collected · {xp} XP
-          </p>
-        </div>
-
-        <label className="flex items-center gap-3 bg-white/5 border border-brand-panel rounded-full px-4 py-2 cursor-pointer select-none">
-          <span className="text-sm text-foreground/90">✨ Auto-detect meetings</span>
-          <button
-            onClick={() => !autoDetect && enableAutoDetect()}
-            className={`relative w-11 h-6 rounded-full transition ${autoDetect ? "bg-brand-lemon" : "bg-brand-panel-hover"}`}
-            role="switch"
-            aria-checked={autoDetect}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${autoDetect ? "left-[1.35rem]" : "left-0.5"}`}
-            />
-          </button>
-        </label>
-      </div>
-
-      <div className="mt-8 h-[30rem] rounded-3xl border border-brand-panel bg-gradient-to-b from-brand-panel/40 to-background/20">
+    <div className="relative z-10 mx-auto flex h-[calc(100dvh-9rem)] max-w-7xl flex-col overflow-hidden px-6 pt-2">
+      <div className="relative flex-1 overflow-hidden rounded-3xl border border-brand-panel bg-gradient-to-b from-brand-panel/40 to-background/20">
         <Suspense
           fallback={
             <div className="flex h-full items-center justify-center font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground/80">
@@ -52,40 +26,76 @@ export default function GalaxyMap() {
         >
           <Orrery
             progressById={{ "p-riskara": riskaraPct }}
-            onSelect={(planetId) => openPlanet(planetId)}
+            focusedId={focusedId}
+            onFocusChange={setFocusedId}
           />
         </Suspense>
-      </div>
 
-      <div className="mt-10 grid sm:grid-cols-3 gap-4">
-        <button
-          onClick={() => go("card")}
-          className="rounded-2xl border border-brand-panel bg-white/[0.04] p-5 text-left hover:border-brand-magenta/50 transition"
+        {/* Detail sidebar — slides in when a planet is engaged */}
+        <div
+          className={`absolute right-0 top-0 z-30 flex h-full w-full max-w-sm transform flex-col border-l border-brand-panel bg-background/92 backdrop-blur-xl transition-transform duration-500 ease-out ${
+            focused ? "translate-x-0" : "translate-x-full"
+          }`}
+          aria-hidden={!focused}
         >
-          <div className="text-2xl">🃏</div>
-          <div className="font-semibold mt-2">My card</div>
-          <div className="text-xs text-muted-foreground/80 mt-1">Customise how colleagues collect you</div>
-        </button>
-        <button
-          onClick={() => go("collection")}
-          className="rounded-2xl border border-brand-panel bg-white/[0.04] p-5 text-left hover:border-brand-magenta/50 transition"
-        >
-          <div className="text-2xl">🌌</div>
-          <div className="font-semibold mt-2">The Galaxy</div>
-          <div className="text-xs text-muted-foreground/80 mt-1">
-            {collected}/{colleagues.length} colleagues collected
-          </div>
-        </button>
-        <button
-          onClick={() => go("squad")}
-          className="rounded-2xl border border-brand-panel bg-white/[0.04] p-5 text-left hover:border-brand-magenta/50 transition"
-        >
-          <div className="text-2xl">🛡️</div>
-          <div className="font-semibold mt-2">Squad Nebula</div>
-          <div className="text-xs text-muted-foreground/80 mt-1">
-            Shared progress toward this sprint&apos;s goal
-          </div>
-        </button>
+          {focused && (
+            <div className="flex h-full flex-col overflow-y-auto">
+              <div className={`relative h-40 w-full shrink-0 bg-gradient-to-br ${focused.color}`}>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+                <button
+                  onClick={() => setFocusedId(null)}
+                  className="absolute left-4 top-4 rounded-lg border border-brand-panel-hover bg-black/30 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.25em] text-white backdrop-blur transition hover:bg-white/15"
+                >
+                  ← disengage
+                </button>
+                <div className="absolute bottom-3 right-4 font-mono text-[10px] uppercase tracking-[0.3em] text-brand-magenta/80">
+                  ↳ target locked
+                </div>
+              </div>
+
+              <div className="flex-1 space-y-5 px-6 py-6">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.35em] text-brand-magenta/80">
+                    {focused.comingSoon ? "uncharted world" : `sector ${focused.order}`}
+                  </div>
+                  <h2 className="mt-1.5 font-display text-3xl tracking-[0.06em]">{focused.name}</h2>
+                  <div className="mt-1 text-sm text-brand-magenta">{focused.domain}</div>
+                </div>
+
+                <p className="text-sm leading-relaxed text-foreground/85">{focused.blurb}</p>
+
+                {focused.real ? (
+                  <div className="space-y-4 border-t border-brand-panel pt-5">
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Mission progress</span>
+                        <span className="text-brand-lemon">{riskaraPct}%</span>
+                      </div>
+                      <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-brand-magenta to-brand-lemon"
+                          style={{ width: `${riskaraPct}%` }}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => openPlanet(focused.id)}
+                      className="w-full rounded-xl bg-brand-lemon px-5 py-3 font-semibold text-[#14110f] transition hover:brightness-110"
+                    >
+                      Begin missions →
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-t border-brand-panel pt-5">
+                    <div className="flex items-center gap-2 rounded-xl border border-brand-magenta/30 bg-brand-magenta/10 px-4 py-3 text-sm text-brand-magenta">
+                      🚧 Terraforming in progress — missions landing soon.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 220" font-family="Helvetica, Arial, sans-serif">
+  <rect width="680" height="220" fill="#ffffff"/>
+  <!-- Shield mark with subtle slash -->
+  <g transform="translate(48,42)">
+    <path d="M68 0 L136 24 V78 C136 118 106 146 68 160 C30 146 0 118 0 78 V24 Z" fill="#0b2e59"/>
+    <path d="M68 14 L122 33 V78 C122 110 98 133 68 145 C38 133 14 110 14 78 V33 Z" fill="#144a8f"/>
+    <line x1="26" y1="118" x2="110" y2="40" stroke="#ffffff" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(220,0)">
+    <text x="0" y="105" font-size="46" font-weight="bold" fill="#0b2e59" letter-spacing="1">DENIAL</text>
+    <text x="182" y="105" font-size="46" font-weight="300" fill="#144a8f" letter-spacing="1">MUTUAL</text>
+    <line x1="2" y1="126" x2="392" y2="126" stroke="#c9a227" stroke-width="3"/>
+    <text x="2" y="156" font-size="17" fill="#5a6b7d" letter-spacing="2">PROTECTING OUR ASSETS SINCE 1954</text>
+  </g>
+</svg>

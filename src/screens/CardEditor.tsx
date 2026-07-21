@@ -2,14 +2,7 @@ import { useMemo } from "react";
 import { useStore } from "@/store";
 import PlayerCard from "@/components/PlayerCard";
 import Avatar from "@/components/Avatar";
-import {
-  RARITIES,
-  RARITY_STYLES,
-  STAT_KEYS,
-  STAT_POINTS,
-  DEMO_USER,
-  type Rarity,
-} from "@/data/orbit";
+import { STAT_KEYS, STAT_POINTS, DEMO_USER } from "@/data/orbit";
 
 export default function CardEditor() {
   const { myCard, setMyCard, showToast, go } = useStore();
@@ -68,30 +61,9 @@ export default function CardEditor() {
               <div>
                 <div className="text-sm font-medium">{DEMO_USER.name}</div>
                 <div className="text-xs text-muted-foreground/80 mt-0.5">
-                  Pulled from the company directory · people.json
+                  Demo profile · Alice Broker
                 </div>
               </div>
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              Card style
-            </h2>
-            <div className="mt-3 flex gap-2 flex-wrap">
-              {RARITIES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setMyCard({ ...myCard, rarity: r as Rarity, customised: true })}
-                  className={`px-3 py-1.5 rounded-full border text-sm transition ${
-                    myCard.rarity === r
-                      ? RARITY_STYLES[r].chip + " ring-1 ring-white/40"
-                      : "border-brand-panel text-muted-foreground hover:bg-white/5"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
             </div>
           </section>
 

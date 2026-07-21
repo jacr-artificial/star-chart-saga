@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 220" font-family="Helvetica, Arial, sans-serif">
+  <rect width="680" height="220" fill="#ffffff"/>
+  <!-- Interlocking rings, one with a convenient gap -->
+  <g transform="translate(50,50)" fill="none" stroke-linecap="round">
+    <circle cx="55" cy="60" r="46" stroke="#5b21b6" stroke-width="14"/>
+    <path d="M 145 14 A 46 46 0 1 0 145 106" stroke="#8b5cf6" stroke-width="14" transform="rotate(40 122 60)"/>
+  </g>
+  <g transform="translate(230,0)">
+    <text x="0" y="100" font-size="44" font-weight="bold" fill="#3b1d70" letter-spacing="0.5">LOOPHOLE</text>
+    <text x="243" y="100" font-size="44" font-weight="300" fill="#8b5cf6">Financial</text>
+    <line x1="2" y1="122" x2="415" y2="122" stroke="#3b1d70" stroke-width="3"/>
+    <text x="2" y="152" font-size="17" fill="#6d6a75" letter-spacing="2">THERE'S ALWAYS A WAY OUT™</text>
+  </g>
+</svg>
