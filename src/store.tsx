@@ -49,7 +49,7 @@ const StoreContext = createContext<StoreValue | null>(null);
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [screen, setScreen] = useState<ScreenId>("onboarding");
+  const [screen, setScreen] = useState<ScreenId>("galaxy");
   const [activePlanetId, setActivePlanetId] = useState<string | null>(null);
   const [collectTargetId, setCollectTargetId] = useState<string | null>(null);
 

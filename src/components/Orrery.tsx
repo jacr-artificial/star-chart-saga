@@ -41,6 +41,15 @@ const ORBITS: Record<string, OrbitCfg> = {
     theta: 4.7,
     tilt: 0.2,
   },
+  "p-brossa": {
+    color: 0xc084fc,
+    deep: 0x581c87,
+    radius: 19.5,
+    speed: 0.05,
+    size: 1.3,
+    theta: 5.9,
+    tilt: -0.15,
+  },
 };
 
 function makeGlowTexture() {
@@ -58,15 +67,37 @@ function makeGlowTexture() {
 
 type OrreryProps = {
   progressById?: Record<string, number>;
-  onSelect?: (planetId: string) => void;
+  focusedId?: string | null;
+  onFocusChange?: (planetId: string | null) => void;
 };
 
-export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
+export default function Orrery({
+  progressById = {},
+  focusedId = null,
+  onFocusChange,
+}: OrreryProps) {
   const mountRef = useRef<HTMLDivElement>(null);
   const labelRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [hoveredId, setHoveredId] = useState<string | null>(null);
-  const onSelectRef = useRef(onSelect);
-  onSelectRef.current = onSelect;
+  const [warpTick, setWarpTick] = useState(0);
+  const onFocusRef = useRef(onFocusChange);
+  onFocusRef.current = onFocusChange;
+
+  // Camera fly-to state, read inside the animation loop.
+  const focusRef = useRef<string | null>(focusedId);
+  const pendingFocusRef = useRef<string | null>(null);
+  const returningRef = useRef(false);
+
+  useEffect(() => {
+    const prev = focusRef.current;
+    focusRef.current = focusedId;
+    if (focusedId && focusedId !== prev) {
+      pendingFocusRef.current = focusedId;
+      setWarpTick((k) => k + 1);
+    } else if (!focusedId && prev) {
+      returningRef.current = true;
+    }
+  }, [focusedId]);
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -138,6 +169,7 @@ export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
     );
 
     const planetMeshes: THREE.Mesh[] = [];
+    const meshById: Record<string, THREE.Mesh> = {};
     const pivots: Record<string, { pivot: THREE.Group; cfg: OrbitCfg }> = {};
 
     for (const p of PLANETS) {
@@ -197,6 +229,7 @@ export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
       planet.userData = { planetId: p.id, baseScale: 1 };
       pivot.add(planet);
       planetMeshes.push(planet);
+      meshById[p.id] = planet;
 
       if (p.ring) {
         const torus = new THREE.Mesh(
@@ -293,7 +326,7 @@ export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
       const moved = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
       downPos = null;
       if (moved < 6 && hovered) {
-        onSelectRef.current?.(hovered.userData.planetId as string);
+        onFocusRef.current?.(hovered.userData.planetId as string);
       }
     };
     renderer.domElement.addEventListener("pointermove", onPointerMove);
@@ -315,6 +348,13 @@ export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
     const va = new THREE.Vector3();
     const vb = new THREE.Vector3();
     const vp = new THREE.Vector3();
+
+    // Camera fly-to ("swoosh") state
+    const HOME_POS = new THREE.Vector3(0, 15, 27);
+    const HOME_TARGET = new THREE.Vector3(0, 0, 0);
+    const focusWorld = new THREE.Vector3();
+    const desiredPos = new THREE.Vector3();
+    const focusOffset = new THREE.Vector3();
     let raf = 0;
 
     const animate = () => {
@@ -369,6 +409,38 @@ export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
         el.style.opacity = behind ? "0" : "1";
       }
 
+      const fid = focusRef.current;
+      if (fid && meshById[fid]) {
+        const cfg = ORBITS[fid]!;
+        meshById[fid]!.getWorldPosition(focusWorld);
+        if (pendingFocusRef.current === fid) {
+          // Frame a fresh close-up view: outward (radial) from the sun, lifted a touch.
+          focusOffset.set(focusWorld.x, 0, focusWorld.z);
+          if (focusOffset.lengthSq() < 1e-4) focusOffset.set(0, 0, 1);
+          focusOffset.normalize().multiplyScalar(cfg.size * 4 + 5);
+          focusOffset.y = cfg.size * 2.2 + 3;
+          pendingFocusRef.current = null;
+        }
+        desiredPos.copy(focusWorld).add(focusOffset);
+        controls.enabled = false;
+        controls.autoRotate = false;
+        controls.target.lerp(focusWorld, 0.09);
+        camera.position.lerp(desiredPos, 0.07);
+      } else if (returningRef.current) {
+        controls.enabled = false;
+        controls.autoRotate = false;
+        controls.target.lerp(HOME_TARGET, 0.08);
+        camera.position.lerp(HOME_POS, 0.06);
+        if (
+          camera.position.distanceTo(HOME_POS) < 0.4 &&
+          controls.target.distanceTo(HOME_TARGET) < 0.4
+        ) {
+          returningRef.current = false;
+          controls.enabled = true;
+          controls.autoRotate = true;
+        }
+      }
+
       controls.update();
       renderer.render(scene, camera);
     };
@@ -390,16 +462,23 @@ export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
 
   return (
     <div ref={mountRef} className="relative w-full h-full overflow-hidden rounded-3xl">
+      {warpTick > 0 && (
+        <div
+          key={warpTick}
+          className="warp-flash pointer-events-none absolute inset-0 z-20"
+          aria-hidden
+        />
+      )}
       {PLANETS.map((p) => (
         <button
           key={p.id}
           ref={(el) => {
             labelRefs.current[p.id] = el;
           }}
-          onClick={() => onSelect?.(p.id)}
+          onClick={() => onFocusChange?.(p.id)}
           className={`absolute left-0 top-0 z-10 text-center transition-opacity duration-200 ${
             hoveredId === p.id ? "scale-105" : ""
-          }`}
+          } ${focusedId === p.id ? "ring-1 ring-violet-400/60 rounded-xl" : ""}`}
           style={{ willChange: "transform" }}
         >
           <div className="pointer-events-auto rounded-xl border border-white/15 bg-[#0b0d22]/80 backdrop-blur px-3 py-1.5 shadow-lg">
@@ -409,18 +488,26 @@ export default function Orrery({ progressById = {}, onSelect }: OrreryProps) {
                 <span className="text-[0.6rem] text-amber-300">🏠</span>
               )}
             </div>
-            <div className="text-[0.65rem] text-slate-400">{p.domain}</div>
-            <div className="mt-1 w-24 h-1 rounded-full bg-white/10 overflow-hidden mx-auto">
-              <div
-                className="h-full bg-gradient-to-r from-violet-500 to-amber-400"
-                style={{ width: `${progressById[p.id] ?? 0}%` }}
-              />
-            </div>
+            {p.comingSoon ? (
+              <div className="mt-0.5 text-[0.6rem] uppercase tracking-[0.15em] text-fuchsia-300/90">
+                Coming soon
+              </div>
+            ) : (
+              <>
+                <div className="text-[0.65rem] text-slate-400">{p.domain}</div>
+                <div className="mt-1 w-24 h-1 rounded-full bg-white/10 overflow-hidden mx-auto">
+                  <div
+                    className="h-full bg-gradient-to-r from-violet-500 to-amber-400"
+                    style={{ width: `${progressById[p.id] ?? 0}%` }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </button>
       ))}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[0.65rem] text-slate-500 bg-[#0b0d22]/60 rounded-full px-3 py-1 backdrop-blur pointer-events-none">
-        drag to orbit · scroll to zoom · click a planet to land
+        drag to orbit · scroll to zoom · click a planet to engage
       </div>
     </div>
   );

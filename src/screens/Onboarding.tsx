@@ -1,13 +1,20 @@
 import { useRef, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useStore } from "@/store";
 import { PLANETS, DEMO_USER } from "@/data/orbit";
 
 export default function Onboarding() {
-  const { setOnboarded, go } = useStore();
+  const { setOnboarded } = useStore();
+  const navigate = useNavigate();
   const [stage, setStage] = useState<"drop" | "scanning" | "reveal">("drop");
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const enterGalaxy = () => {
+    setOnboarded(true);
+    navigate({ to: "/app" });
+  };
 
   const spawnPlanet = PLANETS.find((p) => p.id === DEMO_USER.spawnPlanetId)!;
 
@@ -18,7 +25,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="relative z-10 min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6 text-center">
+    <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6 py-16 text-center">
       <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-primary/80">
         ✦ onboarding sequence
       </div>
@@ -64,10 +71,7 @@ export default function Onboarding() {
             />
           </div>
           <button
-            onClick={() => {
-              setOnboarded(true);
-              go("galaxy");
-            }}
+            onClick={enterGalaxy}
             className="mt-6 text-sm text-slate-500 hover:text-slate-300 underline underline-offset-4"
           >
             Skip for now
@@ -100,10 +104,7 @@ export default function Onboarding() {
             🔒 And don&apos;t worry — we don&apos;t keep your CV.
           </div>
           <button
-            onClick={() => {
-              setOnboarded(true);
-              go("galaxy");
-            }}
+            onClick={enterGalaxy}
             className="mt-8 bg-violet-600 hover:bg-violet-500 transition rounded-xl px-8 py-3 font-semibold"
           >
             Enter the galaxy →

@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { StoreProvider } from "@/store";
 import OrbitApp from "@/components/OrbitApp";
 
 export const Route = createFileRoute("/app")({
@@ -17,9 +16,5 @@ export const Route = createFileRoute("/app")({
 });
 
 function AppRoute() {
-  return (
-    <StoreProvider>
-      <OrbitApp />
-    </StoreProvider>
-  );
+  return <OrbitApp />;
 }
