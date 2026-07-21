@@ -15,8 +15,8 @@ type OrbitCfg = {
 
 const ORBITS: Record<string, OrbitCfg> = {
   "p-riskara": {
-    color: 0xfb923c,
-    deep: 0x9a3412,
+    color: 0xf0f95f,
+    deep: 0x4a4a12,
     radius: 7.5,
     speed: 0.2,
     size: 1.75,
@@ -24,8 +24,8 @@ const ORBITS: Record<string, OrbitCfg> = {
     tilt: 0.35,
   },
   "p-actuaria": {
-    color: 0x38bdf8,
-    deep: 0x1e3a8a,
+    color: 0xcf6fa5,
+    deep: 0x3a1a34,
     radius: 11.5,
     speed: 0.12,
     size: 1.25,
@@ -33,8 +33,8 @@ const ORBITS: Record<string, OrbitCfg> = {
     tilt: -0.25,
   },
   "p-bindara": {
-    color: 0x34d399,
-    deep: 0x065f46,
+    color: 0xc1b0a6,
+    deep: 0x4a2444,
     radius: 15.5,
     speed: 0.075,
     size: 1.5,
@@ -42,8 +42,8 @@ const ORBITS: Record<string, OrbitCfg> = {
     tilt: 0.2,
   },
   "p-brossa": {
-    color: 0xc084fc,
-    deep: 0x581c87,
+    color: 0x9a4890,
+    deep: 0x2a1526,
     radius: 19.5,
     speed: 0.05,
     size: 1.3,
@@ -339,7 +339,7 @@ export default function Orrery({
     controls.minPolarAngle = 0.6;
     controls.maxPolarAngle = 1.35;
 
-    scene.add(new THREE.AmbientLight(0x9aa0d0, 0.55));
+    scene.add(new THREE.AmbientLight(0xc1b0a6, 0.55));
     const sunLight = new THREE.PointLight(0xffe0b0, 2.4, 0, 0);
     scene.add(sunLight);
 
@@ -375,7 +375,7 @@ export default function Orrery({
       new THREE.Points(
         starGeo,
         new THREE.PointsMaterial({
-          color: 0xcdd3ff,
+          color: 0xe8dccf,
           size: 0.28,
           transparent: true,
           opacity: 0.75,
@@ -401,7 +401,7 @@ export default function Orrery({
         new THREE.Line(
           new THREE.BufferGeometry().setFromPoints(ringPts),
           new THREE.LineBasicMaterial({
-            color: 0x8b5cf6,
+            color: 0xcf6fa5,
             transparent: true,
             opacity: 0.28,
           }),
@@ -416,7 +416,7 @@ export default function Orrery({
       const arm = new THREE.Mesh(
         new THREE.CylinderGeometry(0.035, 0.035, cfg.radius, 8),
         new THREE.MeshBasicMaterial({
-          color: 0xa78bfa,
+          color: 0x9a4890,
           transparent: true,
           opacity: 0.32,
         }),
@@ -427,7 +427,7 @@ export default function Orrery({
 
       const bead = new THREE.Mesh(
         new THREE.SphereGeometry(0.14, 12, 12),
-        new THREE.MeshBasicMaterial({ color: 0xd8ccff }),
+        new THREE.MeshBasicMaterial({ color: 0xc1b0a6 }),
       );
       bead.position.x = cfg.radius;
       pivot.add(bead);
@@ -457,7 +457,7 @@ export default function Orrery({
         const torus = new THREE.Mesh(
           new THREE.TorusGeometry(cfg.size * 1.65, 0.055, 12, 80),
           new THREE.MeshBasicMaterial({
-            color: 0xe2e8f0,
+            color: 0xc1b0a6,
             transparent: true,
             opacity: 0.5,
           }),
@@ -470,8 +470,8 @@ export default function Orrery({
         const moon = new THREE.Mesh(
           new THREE.SphereGeometry(0.28, 16, 16),
           new THREE.MeshStandardMaterial({
-            color: 0xfde68a,
-            emissive: 0x92400e,
+            color: 0xf0f95f,
+            emissive: 0x4a4a12,
             emissiveIntensity: 0.5,
           }),
         );
@@ -497,7 +497,7 @@ export default function Orrery({
         const line = new THREE.Line(
           geo,
           new THREE.LineBasicMaterial({
-            color: 0xa78bfa,
+            color: 0xcf6fa5,
             transparent: true,
             opacity: 0.35,
           }),
@@ -505,7 +505,7 @@ export default function Orrery({
         scene.add(line);
         const pulse = new THREE.Mesh(
           new THREE.SphereGeometry(0.16, 10, 10),
-          new THREE.MeshBasicMaterial({ color: 0xfbbf24 }),
+          new THREE.MeshBasicMaterial({ color: 0xf0f95f }),
         );
         scene.add(pulse);
         pairs.push({
@@ -701,23 +701,26 @@ export default function Orrery({
           onClick={() => onFocusChange?.(p.id)}
           className={`absolute left-0 top-0 z-10 text-center transition-opacity duration-200 ${
             hoveredId === p.id ? "scale-105" : ""
-          } ${focusedId === p.id ? "ring-1 ring-violet-400/60 rounded-xl" : ""}`}
+          } ${focusedId === p.id ? "ring-1 ring-brand-magenta/60 rounded-xl" : ""}`}
           style={{ willChange: "transform" }}
         >
-          <div className="pointer-events-auto rounded-xl border border-white/15 bg-[#0b0d22]/80 backdrop-blur px-3 py-1.5 shadow-lg">
+          <div className="pointer-events-auto rounded-xl border border-brand-panel-hover bg-background/85 backdrop-blur px-3 py-1.5 shadow-lg">
             <div className="text-sm font-bold leading-tight flex items-center gap-1.5 justify-center">
               {p.name}
+              {p.id === DEMO_USER.spawnPlanetId && (
+                <span className="text-[0.6rem] text-brand-lemon">🏠</span>
+              )}
             </div>
             {p.comingSoon ? (
-              <div className="mt-0.5 text-[0.6rem] uppercase tracking-[0.15em] text-fuchsia-300/90">
+              <div className="mt-0.5 text-[0.6rem] uppercase tracking-[0.15em] text-brand-lemon/90">
                 Coming soon
               </div>
             ) : (
               <>
-                <div className="text-[0.65rem] text-slate-400">{p.domain}</div>
+                <div className="text-[0.65rem] text-muted-foreground">{p.domain}</div>
                 <div className="mt-1 w-24 h-1 rounded-full bg-white/10 overflow-hidden mx-auto">
                   <div
-                    className="h-full bg-gradient-to-r from-violet-500 to-amber-400"
+                    className="h-full bg-gradient-to-r from-brand-magenta to-brand-lemon"
                     style={{ width: `${progressById[p.id] ?? 0}%` }}
                   />
                 </div>
@@ -726,7 +729,7 @@ export default function Orrery({
           </div>
         </button>
       ))}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[0.65rem] text-slate-500 bg-[#0b0d22]/60 rounded-full px-3 py-1 backdrop-blur pointer-events-none">
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-[0.65rem] text-muted-foreground/80 bg-background/60 rounded-full px-3 py-1 backdrop-blur pointer-events-none">
         drag to orbit · scroll to zoom · click a planet to engage
       </div>
     </div>

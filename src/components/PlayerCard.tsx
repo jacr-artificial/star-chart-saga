@@ -49,14 +49,14 @@ export default function PlayerCard({
         <div
           className={`card-face absolute inset-0 rounded-2xl bg-gradient-to-br ${r.gradient} ${r.glow} ${holo ? "holo" : ""} border border-white/15 p-[3px] cursor-pointer`}
         >
-          <div className="w-full h-full rounded-xl bg-[#0b0d22]/85 flex flex-col items-center px-3 pt-4 pb-3">
+          <div className="w-full h-full rounded-xl bg-background/85 flex flex-col items-center px-3 pt-4 pb-3">
             <div
               className={`self-end px-2 py-0.5 rounded-full border ${r.chip} ${textScale} font-semibold tracking-wide`}
             >
               {r.label}
             </div>
             <div
-              className={`${size === "sm" ? "mt-1" : "mt-3"} drop-shadow-[0_0_12px_rgba(167,139,250,0.5)]`}
+              className={`${size === "sm" ? "mt-1" : "mt-3"} drop-shadow-[0_0_12px_rgba(207,111,165,0.45)]`}
             >
               <Avatar url={avatarUrl} initials={initials} accentHue={accentHue} size={avatarSize} />
             </div>
@@ -65,14 +65,14 @@ export default function PlayerCard({
             >
               {name}
             </div>
-            <div className={`${textScale} text-slate-400 text-center`}>{role}</div>
+            <div className={`${textScale} text-muted-foreground text-center`}>{role}</div>
             <div className="mt-auto w-full grid grid-cols-2 gap-1.5">
               {STAT_KEYS.map((s) => (
                 <div
                   key={s.key}
                   className={`flex items-center gap-1 min-w-0 bg-white/5 rounded-md px-1.5 py-1 ${textScale}`}
                 >
-                  <span className="text-slate-400 truncate whitespace-nowrap">{s.label}</span>
+                  <span className="text-muted-foreground truncate whitespace-nowrap">{s.label}</span>
                   <span className={`ml-auto shrink-0 font-bold ${r.text}`}>
                     {stats?.[s.key] ?? 0}
                   </span>
@@ -84,17 +84,17 @@ export default function PlayerCard({
         <div
           className={`card-face card-back absolute inset-0 rounded-2xl bg-gradient-to-br ${r.gradient} border border-white/15 p-[3px] cursor-pointer`}
         >
-          <div className="w-full h-full rounded-xl bg-[#0b0d22]/90 flex flex-col items-center justify-center px-4 text-center">
+          <div className="w-full h-full rounded-xl bg-background/90 flex flex-col items-center justify-center px-4 text-center">
             <div className="text-3xl mb-3">💬</div>
             <div
-              className={`italic ${size === "sm" ? "text-xs" : "text-sm"} text-slate-200 leading-relaxed`}
+              className={`italic ${size === "sm" ? "text-xs" : "text-sm"} text-foreground leading-relaxed`}
             >
               “{catchphrase || "…"}”
             </div>
-            <div className={`mt-4 ${textScale} text-slate-500 uppercase tracking-widest`}>
+            <div className={`mt-4 ${textScale} text-muted-foreground uppercase tracking-widest`}>
               catchphrase
             </div>
-            <div className="mt-6 text-slate-600 text-2xl">🪐</div>
+            <div className="mt-6 text-muted-foreground/60 text-2xl">🪐</div>
           </div>
         </div>
       </div>

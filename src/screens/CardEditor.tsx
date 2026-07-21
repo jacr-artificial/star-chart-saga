@@ -26,7 +26,7 @@ export default function CardEditor() {
   return (
     <div className="relative z-10 max-w-5xl mx-auto px-6 py-8">
       <h1 className="text-2xl font-bold font-display tracking-wide">My card</h1>
-      <p className="text-slate-400 text-sm mt-1">
+      <p className="text-muted-foreground text-sm mt-1">
         This is how colleagues see you when they collect you. Make it yours.
       </p>
 
@@ -43,15 +43,15 @@ export default function CardEditor() {
             catchphrase={myCard.catchphrase}
             stats={myCard.stats}
           />
-          <div className="text-center text-xs text-slate-500 mt-3">Click the card to flip it</div>
+          <div className="text-center text-xs text-muted-foreground/80 mt-3">Click the card to flip it</div>
         </div>
 
         <div className="flex-1 w-full space-y-7">
           <section>
-            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               Your photo
             </h2>
-            <div className="mt-3 flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+            <div className="mt-3 flex items-center gap-4 rounded-2xl border border-brand-panel bg-white/[0.04] p-4">
               <Avatar
                 url={DEMO_USER.avatarUrl}
                 initials={DEMO_USER.initials}
@@ -60,13 +60,15 @@ export default function CardEditor() {
               />
               <div>
                 <div className="text-sm font-medium">{DEMO_USER.name}</div>
-                <div className="text-xs text-slate-500 mt-0.5">Demo profile · Alice Broker</div>
+                <div className="text-xs text-muted-foreground/80 mt-0.5">
+                  Demo profile · Alice Broker
+                </div>
               </div>
             </div>
           </section>
 
           <section>
-            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               Catchphrase
             </h2>
             <input
@@ -80,20 +82,20 @@ export default function CardEditor() {
                 })
               }
               placeholder="One line that's very you…"
-              className="mt-3 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-400 placeholder:text-slate-600"
+              className="mt-3 w-full bg-white/5 border border-brand-panel rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-magenta placeholder:text-muted-foreground/55"
             />
-            <div className="text-xs text-slate-600 mt-1 text-right">
+            <div className="text-xs text-muted-foreground/55 mt-1 text-right">
               {myCard.catchphrase.length}/60
             </div>
           </section>
 
           <section>
             <div className="flex items-baseline justify-between">
-              <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Stats
               </h2>
               <span
-                className={`text-xs ${remaining === 0 ? "text-emerald-400" : "text-slate-400"}`}
+                className={`text-xs ${remaining === 0 ? "text-brand-lemon" : "text-muted-foreground"}`}
               >
                 {remaining} point{remaining === 1 ? "" : "s"} left
               </span>
@@ -101,7 +103,7 @@ export default function CardEditor() {
             <div className="mt-3 space-y-3">
               {STAT_KEYS.map((s) => (
                 <div key={s.key} className="flex items-center gap-3">
-                  <span className="w-36 shrink-0 whitespace-nowrap text-sm text-slate-300">
+                  <span className="w-36 shrink-0 whitespace-nowrap text-sm text-foreground/90">
                     {s.label}
                   </span>
                   <input
@@ -110,9 +112,9 @@ export default function CardEditor() {
                     max={10}
                     value={myCard.stats[s.key]}
                     onChange={(e) => setStat(s.key, Number(e.target.value))}
-                    className="flex-1 accent-violet-500"
+                    className="flex-1 accent-brand-magenta"
                   />
-                  <span className="w-6 text-right font-bold text-violet-300">
+                  <span className="w-6 text-right font-bold text-brand-magenta">
                     {myCard.stats[s.key]}
                   </span>
                 </div>
@@ -125,7 +127,7 @@ export default function CardEditor() {
               showToast("✨ Card saved — looking stellar");
               go("collection");
             }}
-            className="w-full bg-violet-600 hover:bg-violet-500 transition rounded-xl py-3 font-semibold shadow-lg shadow-violet-900/40"
+            className="w-full bg-brand-lemon text-[#14110f] hover:brightness-110 transition rounded-xl py-3 font-semibold shadow-lg shadow-black/40"
           >
             Save my card
           </button>

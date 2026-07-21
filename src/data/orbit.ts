@@ -27,33 +27,35 @@ export const RARITY_STYLES: Record<
     chip: string;
   }
 > = {
+  // Restrained ladder in the Summit palette: taupe → dim magenta → bright
+  // magenta → lemon (the reserved call-out) for Legendary.
   Common: {
     label: "Common",
-    gradient: "from-slate-600 to-slate-800",
+    gradient: "from-[#3a3633] to-[#191512]",
     glow: "glow-common",
-    text: "text-slate-300",
-    chip: "bg-slate-500/20 text-slate-300 border-slate-400/30",
+    text: "text-foreground",
+    chip: "bg-brand-panel text-muted-foreground border-brand-panel-hover",
   },
   Rare: {
     label: "Rare",
-    gradient: "from-blue-600 to-indigo-900",
+    gradient: "from-[#4a2444] to-[#1c0f18]",
     glow: "glow-rare",
-    text: "text-blue-300",
-    chip: "bg-blue-500/20 text-blue-300 border-blue-400/30",
+    text: "text-brand-magenta",
+    chip: "bg-brand-magenta-dim/20 text-brand-magenta border-brand-magenta-dim/40",
   },
   Epic: {
     label: "Epic",
-    gradient: "from-violet-600 to-purple-950",
+    gradient: "from-[#7a3a6f] to-[#291423]",
     glow: "glow-epic",
-    text: "text-violet-300",
-    chip: "bg-violet-500/20 text-violet-300 border-violet-400/30",
+    text: "text-brand-magenta",
+    chip: "bg-brand-magenta/20 text-brand-magenta border-brand-magenta/40",
   },
   Legendary: {
     label: "Legendary",
-    gradient: "from-amber-500 to-orange-800",
+    gradient: "from-[#5a5a16] to-[#1a1a08]",
     glow: "glow-legendary",
-    text: "text-amber-300",
-    chip: "bg-amber-500/20 text-amber-300 border-amber-400/30",
+    text: "text-brand-lemon",
+    chip: "bg-brand-lemon/15 text-brand-lemon border-brand-lemon/40",
   },
 };
 
@@ -94,7 +96,7 @@ export const PLANETS: Planet[] = [
     domain: "Insurance Fundamentals",
     order: 1,
     size: 150,
-    color: "from-rose-400 via-orange-500 to-amber-700",
+    color: "from-[#F0F95F] via-[#CF6FA5] to-[#4a1f42]",
     ring: true,
     real: true,
     blurb:
@@ -106,7 +108,7 @@ export const PLANETS: Planet[] = [
     domain: "Pricing, Data & Models",
     order: 2,
     size: 115,
-    color: "from-cyan-400 via-blue-500 to-indigo-800",
+    color: "from-[#C1B0A6] via-[#9A4890] to-[#2a1526]",
     ring: false,
     real: false,
     blurb:
@@ -118,7 +120,7 @@ export const PLANETS: Planet[] = [
     domain: "Placing & Binding Authority",
     order: 3,
     size: 130,
-    color: "from-emerald-400 via-teal-500 to-cyan-800",
+    color: "from-[#CF6FA5] via-[#9A4890] to-[#1c1613]",
     ring: true,
     real: false,
     blurb: "How cover is placed, bound, and delivered — from slip to policy, binder to bordereaux.",
@@ -129,7 +131,7 @@ export const PLANETS: Planet[] = [
     domain: "Engineering & Platform",
     order: 4,
     size: 120,
-    color: "from-fuchsia-400 via-purple-500 to-indigo-800",
+    color: "from-[#9A4890] via-[#6b2f61] to-[#1c1613]",
     ring: false,
     real: false,
     blurb: "Engineering and platform — the systems we build and run behind every policy.",

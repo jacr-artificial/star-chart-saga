@@ -18,10 +18,10 @@ function makeStar(spread: boolean): Star {
 function starTint(z: number) {
   const h = (Math.sin(z * 12.9898) * 43758.5453) % 1;
   const r = Math.abs(h);
-  if (r < 0.55) return "255, 255, 245";
-  if (r < 0.75) return "180, 210, 255";
-  if (r < 0.9) return "255, 230, 180";
-  return "255, 180, 150";
+  if (r < 0.55) return "245, 240, 225"; // warm off-white
+  if (r < 0.78) return "193, 176, 166"; // parchment taupe
+  if (r < 0.91) return "240, 249, 95"; // lemon spark
+  return "207, 111, 165"; // magenta spark
 }
 
 /**
@@ -70,25 +70,25 @@ export default function SpaceBackground() {
       const { w, h, dpr } = sizeRef.current;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Deep space
-      ctx.fillStyle = "#02030a";
+      // Deep space — the deck's warm near-black canvas
+      ctx.fillStyle = "#111111";
       ctx.fillRect(0, 0, w, h);
 
-      // Milky-way band + nebula puffs
+      // Milky-way band + nebula puffs — warm plum / magenta, held well back
       ctx.save();
       ctx.globalCompositeOperation = "screen";
       const band = ctx.createLinearGradient(0, h * 0.2, w, h * 0.8);
-      band.addColorStop(0, "rgba(30,20,60,0)");
-      band.addColorStop(0.5, "rgba(60,40,110,0.30)");
-      band.addColorStop(1, "rgba(20,30,70,0)");
+      band.addColorStop(0, "rgba(60,20,50,0)");
+      band.addColorStop(0.5, "rgba(95,42,84,0.28)");
+      band.addColorStop(1, "rgba(40,28,22,0)");
       ctx.fillStyle = band;
       ctx.fillRect(0, 0, w, h);
 
       const drift = Math.sin(elapsed * 0.05) * 40;
       const puffs = [
-        { x: 0.24, y: 0.4, r: 380, c: "rgba(80,40,140,0.16)" },
-        { x: 0.78, y: 0.62, r: 460, c: "rgba(30,80,140,0.13)" },
-        { x: 0.55, y: 0.22, r: 300, c: "rgba(140,60,100,0.11)" },
+        { x: 0.24, y: 0.4, r: 380, c: "rgba(154,72,144,0.15)" },
+        { x: 0.78, y: 0.62, r: 460, c: "rgba(193,176,166,0.08)" },
+        { x: 0.55, y: 0.22, r: 300, c: "rgba(207,111,165,0.11)" },
       ];
       for (const p of puffs) {
         const gx = w * p.x + drift;
@@ -134,8 +134,8 @@ export default function SpaceBackground() {
       ctx.save();
       ctx.globalCompositeOperation = "screen";
       const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.55);
-      core.addColorStop(0, "rgba(120,90,200,0.10)");
-      core.addColorStop(0.35, "rgba(80,60,160,0.05)");
+      core.addColorStop(0, "rgba(207,111,165,0.09)");
+      core.addColorStop(0.35, "rgba(154,72,144,0.05)");
       core.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = core;
       ctx.fillRect(0, 0, w, h);

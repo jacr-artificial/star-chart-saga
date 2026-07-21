@@ -2,6 +2,7 @@ import { useStore } from "@/store";
 import { DEMO_USER } from "@/data/orbit";
 import Avatar from "@/components/Avatar";
 import SpaceBackground from "@/components/SpaceBackground";
+import SummitFrame from "@/components/brand/SummitFrame";
 import GalaxyMap from "@/screens/GalaxyMap";
 import CardEditor from "@/screens/CardEditor";
 import Collection from "@/screens/Collection";
@@ -36,26 +37,27 @@ export default function OrbitApp() {
     : null;
 
   return (
-    <div className="min-h-screen relative overflow-x-clip">
+    <>
       <SpaceBackground />
-
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0a0c20]/60 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
-            <button onClick={() => go("galaxy")} className="font-extrabold tracking-tight text-lg">
-              🪐{" "}
-              <span className="bg-gradient-to-r from-violet-400 to-amber-300 bg-clip-text text-transparent font-display tracking-wider">
-                Hire Orbit
-              </span>
+      <SummitFrame>
+        <header className="relative z-10 mt-4 border-b border-brand-panel">
+          <div className="flex items-center gap-6 px-5 pb-4 sm:px-7">
+            <button
+              onClick={() => go("galaxy")}
+              className="flex items-center gap-2 font-display text-lg font-semibold tracking-wide text-foreground"
+            >
+              <span className="inline-block h-1.5 w-1.5 rotate-45 bg-brand-lemon" />
+              Hire Orbit
             </button>
-            <nav className="flex gap-1 ml-2">
+            <nav className="ml-2 flex gap-1">
               {NAV.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => go(n.id)}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition ${
+                  className={`rounded-lg px-3 py-1.5 text-sm transition ${
                     screen === n.id || (n.id === "collection" && screen === "collect")
-                      ? "bg-violet-500/20 text-violet-200"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                      ? "bg-brand-magenta/15 text-brand-magenta"
+                      : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                   }`}
                 >
                   <span className="mr-1.5">{n.icon}</span>
@@ -64,11 +66,11 @@ export default function OrbitApp() {
               ))}
             </nav>
             <div className="ml-auto flex items-center gap-3">
-              <label className="hidden sm:flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 cursor-pointer select-none">
-                <span className="text-xs text-slate-300">✨ Auto-detect</span>
+              <label className="hidden sm:flex items-center gap-2 bg-white/5 border border-brand-panel rounded-full px-3 py-1 cursor-pointer select-none">
+                <span className="text-xs text-foreground/90">✨ Auto-detect</span>
                 <button
                   onClick={() => !autoDetect && enableAutoDetect()}
-                  className={`relative w-9 h-5 rounded-full transition ${autoDetect ? "bg-emerald-500" : "bg-slate-700"}`}
+                  className={`relative w-9 h-5 rounded-full transition ${autoDetect ? "bg-brand-lemon" : "bg-brand-panel-hover"}`}
                   role="switch"
                   aria-checked={autoDetect}
                   aria-label="Auto-detect meetings"
@@ -78,10 +80,10 @@ export default function OrbitApp() {
                   />
                 </button>
               </label>
-              <div className="text-xs bg-amber-400/15 text-amber-300 border border-amber-400/30 rounded-full px-3 py-1 font-semibold">
+              <div className="rounded-full border border-brand-lemon/30 bg-brand-lemon/10 px-3 py-1 font-mono text-xs font-semibold tracking-wide text-brand-lemon">
                 ⭐ {xp} XP
               </div>
-              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-400">
+              <div className="hidden items-center gap-2 text-xs text-muted-foreground sm:flex">
                 <Avatar
                   url={DEMO_USER.avatarUrl}
                   initials={DEMO_USER.initials}
@@ -92,51 +94,54 @@ export default function OrbitApp() {
               </div>
             </div>
           </div>
-      </header>
+        </header>
 
-      <main className="relative z-10 pb-16">
-        {screen === "galaxy" && <GalaxyMap />}
-        {screen === "card" && <CardEditor />}
-        {screen === "collection" && <Collection />}
-        {screen === "collect" && <CollectFlow />}
-        {screen === "planet" && <PlanetView />}
-        {screen === "squad" && <SquadView />}
-      </main>
+        <main className="relative z-10 pb-16">
+          {screen === "galaxy" && <GalaxyMap />}
+          {screen === "card" && <CardEditor />}
+          {screen === "collection" && <Collection />}
+          {screen === "collect" && <CollectFlow />}
+          {screen === "planet" && <PlanetView />}
+          {screen === "squad" && <SquadView />}
+        </main>
 
-      {suggestion && autoDetectPrompt && (
-        <div className="fixed bottom-6 right-6 z-50 toast-in max-w-sm rounded-2xl border border-emerald-400/30 bg-[#0d1028]/95 backdrop-blur p-5 shadow-2xl shadow-emerald-900/30">
-          <div className="flex items-start gap-3">
-            <div className="relative h-2.5 w-2.5 mt-1.5 rounded-full bg-emerald-400 ping-dot" />
-            <div className="flex-1">
-              <div className="text-sm font-semibold">We noticed you met {suggestion.name} 👀</div>
-              <div className="text-xs text-slate-400 mt-1">{autoDetectPrompt.context}</div>
-              <div className="mt-3 flex gap-2">
-                <button
-                  onClick={() => {
-                    setAutoDetectPrompt(null);
-                    startCollect(suggestion.id);
-                  }}
-                  className="bg-emerald-600 hover:bg-emerald-500 transition text-xs font-semibold rounded-lg px-3 py-1.5"
-                >
-                  Collect their card
-                </button>
-                <button
-                  onClick={() => setAutoDetectPrompt(null)}
-                  className="text-xs text-slate-400 hover:text-slate-200 px-2"
-                >
-                  Dismiss
-                </button>
+        {suggestion && autoDetectPrompt && (
+          <div className="toast-in fixed bottom-6 right-6 z-50 max-w-sm rounded-2xl border border-brand-magenta/30 bg-brand-panel/95 p-5 shadow-2xl shadow-black/40 backdrop-blur">
+            <div className="flex items-start gap-3">
+              <div className="ping-dot relative mt-1.5 h-2.5 w-2.5 rounded-full bg-brand-lemon" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">
+                  We noticed you met {suggestion.name} 👀
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">{autoDetectPrompt.context}</div>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    onClick={() => {
+                      setAutoDetectPrompt(null);
+                      startCollect(suggestion.id);
+                    }}
+                    className="rounded-lg bg-brand-lemon px-3 py-1.5 text-xs font-semibold text-[#14110f] transition hover:brightness-110"
+                  >
+                    Collect their card
+                  </button>
+                  <button
+                    onClick={() => setAutoDetectPrompt(null)}
+                    className="px-2 text-xs text-muted-foreground transition hover:text-foreground"
+                  >
+                    Dismiss
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 toast-in bg-[#191c3a] border border-white/15 rounded-full px-5 py-2.5 text-sm shadow-xl">
-          {toast}
-        </div>
-      )}
-    </div>
+        {toast && (
+          <div className="toast-in fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full border border-brand-panel-hover bg-brand-panel px-5 py-2.5 text-sm text-foreground shadow-xl">
+            {toast}
+          </div>
+        )}
+      </SummitFrame>
+    </>
   );
 }
