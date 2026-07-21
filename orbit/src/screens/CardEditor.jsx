@@ -1,0 +1,133 @@
+import { useMemo } from "react";
+import { useStore } from "../store.jsx";
+import PlayerCard from "../components/PlayerCard.jsx";
+import { AVATARS, RARITIES, RARITY_STYLES, STAT_KEYS, STAT_POINTS, DEMO_USER } from "../data.js";
+
+export default function CardEditor() {
+  const { myCard, setMyCard, showToast, go } = useStore();
+
+  const spent = useMemo(
+    () => STAT_KEYS.reduce((sum, s) => sum + (myCard.stats[s.key] ?? 0), 0),
+    [myCard.stats]
+  );
+  const remaining = STAT_POINTS - spent;
+
+  const setStat = (key, val) => {
+    const others = spent - (myCard.stats[key] ?? 0);
+    const clamped = Math.max(1, Math.min(val, STAT_POINTS - others, 10));
+    setMyCard({ ...myCard, customised: true, stats: { ...myCard.stats, [key]: clamped } });
+  };
+
+  return (
+    <div className="relative z-10 max-w-5xl mx-auto px-6 py-8">
+      <h1 className="text-2xl font-bold">My card</h1>
+      <p className="text-slate-400 text-sm mt-1">
+        This is how colleagues see you when they collect you. Make it yours.
+      </p>
+
+      <div className="mt-8 flex flex-col lg:flex-row gap-10 items-start">
+        {/* live preview */}
+        <div className="mx-auto lg:mx-0 shrink-0">
+          <PlayerCard
+            size="lg"
+            name={DEMO_USER.name}
+            role={DEMO_USER.role}
+            avatar={myCard.avatar}
+            rarity={myCard.rarity}
+            catchphrase={myCard.catchphrase}
+            stats={myCard.stats}
+          />
+          <div className="text-center text-xs text-slate-500 mt-3">Click the card to flip it</div>
+        </div>
+
+        {/* controls */}
+        <div className="flex-1 w-full space-y-7">
+          <section>
+            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Avatar</h2>
+            <div className="mt-3 grid grid-cols-8 gap-2">
+              {AVATARS.map((a) => (
+                <button
+                  key={a}
+                  onClick={() => setMyCard({ ...myCard, avatar: a, customised: true })}
+                  className={`text-2xl rounded-xl py-2 transition border ${
+                    myCard.avatar === a
+                      ? "bg-violet-500/25 border-violet-400"
+                      : "bg-white/5 border-transparent hover:bg-white/10"
+                  }`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Card style</h2>
+            <div className="mt-3 flex gap-2 flex-wrap">
+              {RARITIES.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setMyCard({ ...myCard, rarity: r, customised: true })}
+                  className={`px-3 py-1.5 rounded-full border text-sm transition ${
+                    myCard.rarity === r
+                      ? RARITY_STYLES[r].chip + " ring-1 ring-white/40"
+                      : "border-white/10 text-slate-400 hover:bg-white/5"
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section>
+            <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Catchphrase</h2>
+            <input
+              value={myCard.catchphrase}
+              maxLength={60}
+              onChange={(e) => setMyCard({ ...myCard, catchphrase: e.target.value, customised: true })}
+              placeholder="One line that's very you…"
+              className="mt-3 w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-violet-400 placeholder:text-slate-600"
+            />
+            <div className="text-xs text-slate-600 mt-1 text-right">{myCard.catchphrase.length}/60</div>
+          </section>
+
+          <section>
+            <div className="flex items-baseline justify-between">
+              <h2 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Stats</h2>
+              <span className={`text-xs ${remaining === 0 ? "text-emerald-400" : "text-slate-400"}`}>
+                {remaining} point{remaining === 1 ? "" : "s"} left
+              </span>
+            </div>
+            <div className="mt-3 space-y-3">
+              {STAT_KEYS.map((s) => (
+                <div key={s.key} className="flex items-center gap-3">
+                  <span className="w-24 text-sm text-slate-300">{s.icon} {s.label}</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max="10"
+                    value={myCard.stats[s.key]}
+                    onChange={(e) => setStat(s.key, Number(e.target.value))}
+                    className="flex-1 accent-violet-500"
+                  />
+                  <span className="w-6 text-right font-bold text-violet-300">{myCard.stats[s.key]}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <button
+            onClick={() => {
+              showToast("✨ Card saved — looking stellar");
+              go("collection");
+            }}
+            className="w-full bg-violet-600 hover:bg-violet-500 transition rounded-xl py-3 font-semibold shadow-lg shadow-violet-900/40"
+          >
+            Save my card
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

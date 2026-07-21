@@ -1,0 +1,202 @@
+@import "tailwindcss";
+
+:root {
+  --space-bg: #070818;
+  --space-panel: #10122b;
+  --space-accent: #8b5cf6;
+  --space-glow: #a78bfa;
+}
+
+body {
+  background: var(--space-bg);
+  color: #e5e7f5;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ---------- starfield ---------- */
+.starfield {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(1px 1px at 12% 22%, #fff9, transparent 50%),
+    radial-gradient(1px 1px at 28% 68%, #fff6, transparent 50%),
+    radial-gradient(1.5px 1.5px at 41% 15%, #fffb, transparent 50%),
+    radial-gradient(1px 1px at 55% 82%, #fff7, transparent 50%),
+    radial-gradient(2px 2px at 63% 35%, #fff8, transparent 50%),
+    radial-gradient(1px 1px at 74% 58%, #fff6, transparent 50%),
+    radial-gradient(1.5px 1.5px at 86% 25%, #fffa, transparent 50%),
+    radial-gradient(1px 1px at 92% 74%, #fff7, transparent 50%),
+    radial-gradient(1px 1px at 5% 88%, #fff8, transparent 50%),
+    radial-gradient(1.5px 1.5px at 35% 45%, #fff5, transparent 50%),
+    radial-gradient(1px 1px at 68% 92%, #fff9, transparent 50%),
+    radial-gradient(1px 1px at 18% 50%, #fff6, transparent 50%);
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+/* ---------- card flip ---------- */
+.card-scene { perspective: 1200px; }
+.card-inner {
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.4, 0.1, 0.2, 1);
+}
+.card-inner.flipped { transform: rotateY(180deg); }
+.card-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.card-back { transform: rotateY(180deg); }
+
+/* ---------- holo shimmer on cards ---------- */
+.holo {
+  position: relative;
+  overflow: hidden;
+}
+.holo::after {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.14) 45%,
+    rgba(167, 139, 250, 0.22) 50%,
+    rgba(255, 255, 255, 0.14) 55%,
+    transparent 65%
+  );
+  animation: holo-sweep 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes holo-sweep {
+  0% { transform: translateX(-40%) rotate(0deg); }
+  55% { transform: translateX(40%) rotate(0deg); }
+  100% { transform: translateX(40%) rotate(0deg); }
+}
+
+/* ---------- rarity glows ---------- */
+.glow-common { box-shadow: 0 0 18px rgba(148, 163, 184, 0.35); }
+.glow-rare { box-shadow: 0 0 22px rgba(96, 165, 250, 0.55); }
+.glow-epic { box-shadow: 0 0 26px rgba(167, 139, 250, 0.65); }
+.glow-legendary {
+  box-shadow: 0 0 34px rgba(251, 191, 36, 0.7);
+  animation: legendary-pulse 2.2s ease-in-out infinite;
+}
+@keyframes legendary-pulse {
+  0%, 100% { box-shadow: 0 0 24px rgba(251, 191, 36, 0.55); }
+  50% { box-shadow: 0 0 44px rgba(251, 191, 36, 0.85); }
+}
+
+/* ---------- unlock burst ---------- */
+@keyframes burst {
+  0% { transform: scale(0.2) rotate(-8deg); opacity: 0; }
+  55% { transform: scale(1.12) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+.unlock-burst { animation: burst 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+@keyframes ray-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.unlock-rays {
+  position: absolute;
+  inset: -40%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 12deg, rgba(167, 139, 250, 0.16) 12deg 24deg,
+    transparent 24deg 36deg, rgba(251, 191, 36, 0.12) 36deg 48deg,
+    transparent 48deg 60deg, rgba(167, 139, 250, 0.16) 60deg 72deg,
+    transparent 72deg 84deg, rgba(251, 191, 36, 0.12) 84deg 96deg,
+    transparent 96deg 108deg, rgba(167, 139, 250, 0.16) 108deg 120deg,
+    transparent 120deg
+  );
+  animation: ray-spin 9s linear infinite;
+  border-radius: 9999px;
+  pointer-events: none;
+}
+
+/* ---------- confetti ---------- */
+@keyframes confetti-fall {
+  0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+}
+.confetti {
+  position: fixed;
+  top: 0;
+  width: 10px;
+  height: 14px;
+  z-index: 60;
+  animation: confetti-fall linear both;
+  pointer-events: none;
+}
+
+/* ---------- planets ---------- */
+.planet {
+  border-radius: 9999px;
+  position: relative;
+  transition: transform 0.35s ease, filter 0.35s ease;
+  cursor: pointer;
+}
+.planet:hover { transform: scale(1.09); filter: brightness(1.2); }
+.planet-ring::before {
+  content: "";
+  position: absolute;
+  inset: -18% -30%;
+  border: 2px solid rgba(226, 232, 240, 0.35);
+  border-radius: 9999px;
+  transform: rotate(-18deg);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-9px); }
+}
+.float-slow { animation: float 7s ease-in-out infinite; }
+.float-med { animation: float 5s ease-in-out infinite; }
+.float-fast { animation: float 4s ease-in-out infinite; }
+
+@keyframes orbit-dash {
+  to { stroke-dashoffset: -40; }
+}
+.orbit-path {
+  stroke-dasharray: 4 6;
+  animation: orbit-dash 4s linear infinite;
+}
+
+/* ---------- scripted scanning bar (CV drop) ---------- */
+@keyframes scan {
+  0% { width: 4%; }
+  100% { width: 100%; }
+}
+.scan-bar { animation: scan 2.6s ease-in-out both; }
+
+/* ---------- progress tick ---------- */
+.progress-fill { transition: width 1s cubic-bezier(0.3, 0.9, 0.3, 1); }
+
+/* ---------- toast slide ---------- */
+@keyframes toast-in {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.toast-in { animation: toast-in 0.45s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
+
+/* ---------- pulse dot for auto-detect ---------- */
+@keyframes ping-dot {
+  0% { transform: scale(1); opacity: 0.9; }
+  80%, 100% { transform: scale(2.4); opacity: 0; }
+}
+.ping-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: #34d399;
+  animation: ping-dot 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
