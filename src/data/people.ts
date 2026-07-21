@@ -179,8 +179,5 @@ export const DEMO_COLLEAGUE: Colleague = {
 /** Everyone in the directory is collectible (demo user is separate / fake). */
 export const COLLECTIBLE_COLLEAGUES: Colleague[] = COLLEAGUES;
 
-/** Two people with photos so the collection looks alive on day one. */
-export const INITIALLY_UNLOCKED: string[] = (() => {
-  const withPhotos = COLLECTIBLE_COLLEAGUES.filter((c) => c.avatarUrl);
-  return [withPhotos[0]?.id, withPhotos[1]?.id].filter(Boolean) as string[];
-})();
+/** Everyone starts uncollected — you meet colleagues in real life to collect them. */
+export const INITIALLY_UNLOCKED: string[] = [];

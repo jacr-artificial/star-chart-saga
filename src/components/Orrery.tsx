@@ -65,6 +65,222 @@ function makeGlowTexture() {
   return new THREE.CanvasTexture(c);
 }
 
+// ---- Procedural planet surfaces (canvas texture + bump map) ----
+
+type SurfaceStyle = {
+  seed: number;
+  octaves: number;
+  gridX: number; // horizontal lattice cells (kept integer so the texture tiles in longitude)
+  bandAmt: number; // amount of latitude banding (0 = rocky, 1 = full gas-giant bands)
+  bandFreq: number;
+  warp: number;
+  bumpScale: number;
+};
+
+const SURFACE: Record<string, SurfaceStyle> = {
+  // Riskara — rocky / lava world, strong relief
+  "p-riskara": {
+    seed: 11,
+    octaves: 6,
+    gridX: 5,
+    bandAmt: 0.08,
+    bandFreq: 5,
+    warp: 1.2,
+    bumpScale: 0.4,
+  },
+  // Actuaria — gas giant with flowing latitude bands
+  "p-actuaria": {
+    seed: 23,
+    octaves: 4,
+    gridX: 3,
+    bandAmt: 0.72,
+    bandFreq: 7,
+    warp: 2.6,
+    bumpScale: 0.05,
+  },
+  // Bindara — earth-like continents + oceans
+  "p-bindara": {
+    seed: 37,
+    octaves: 6,
+    gridX: 4,
+    bandAmt: 0.05,
+    bandFreq: 4,
+    warp: 1,
+    bumpScale: 0.45,
+  },
+  // Brossa IV — alien swirling world
+  "p-brossa": {
+    seed: 59,
+    octaves: 5,
+    gridX: 4,
+    bandAmt: 0.5,
+    bandFreq: 9,
+    warp: 3.2,
+    bumpScale: 0.22,
+  },
+};
+
+// Deterministic RNG so an unknown planet gets a distinct-but-stable surface.
+function strHash(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function mulberry32(a: number): () => number {
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Randomised-within-bounds surface style for planets with no explicit SURFACE record. */
+function randomSurfaceStyle(id: string): SurfaceStyle {
+  const rng = mulberry32(strHash(id));
+  const range = (min: number, max: number) => min + (max - min) * rng();
+  return {
+    seed: Math.floor(rng() * 100000),
+    octaves: Math.round(range(4, 6)),
+    gridX: Math.round(range(3, 6)),
+    bandAmt: range(0, 0.8),
+    bandFreq: range(4, 10),
+    warp: range(1, 3.5),
+    bumpScale: range(0.05, 0.45),
+  };
+}
+
+type RGB = [number, number, number];
+
+function hexToRgb(h: number): RGB {
+  return [(h >> 16) & 255, (h >> 8) & 255, h & 255];
+}
+function mix(a: RGB, b: RGB, t: number): RGB {
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+function lighten(c: RGB, t: number): RGB {
+  return mix(c, [255, 255, 255], t);
+}
+function darken(c: RGB, t: number): RGB {
+  return mix(c, [0, 0, 0], t);
+}
+
+function hash2(ix: number, iy: number, seed: number): number {
+  let h = Math.imul(ix, 374761393) ^ Math.imul(iy, 668265263) ^ Math.imul(seed, 40503);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  return (h >>> 0) / 4294967295;
+}
+
+// Value noise, tileable in x (period = cellsX), clamped at the poles in y.
+function vnoise(u: number, v: number, cellsX: number, cellsY: number, seed: number): number {
+  const x = u * cellsX;
+  const y = v * cellsY;
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const fx = x - x0;
+  const fy = y - y0;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const wx = (i: number) => ((i % cellsX) + cellsX) % cellsX;
+  const cyl = (i: number) => Math.max(0, Math.min(cellsY, i));
+  const n00 = hash2(wx(x0), cyl(y0), seed);
+  const n10 = hash2(wx(x0 + 1), cyl(y0), seed);
+  const n01 = hash2(wx(x0), cyl(y0 + 1), seed);
+  const n11 = hash2(wx(x0 + 1), cyl(y0 + 1), seed);
+  const nx0 = n00 + (n10 - n00) * sx;
+  const nx1 = n01 + (n11 - n01) * sx;
+  return nx0 + (nx1 - nx0) * sy;
+}
+
+function paletteColor(t: number, stops: [number, RGB][]): RGB {
+  const tt = Math.max(0, Math.min(1, t));
+  for (let i = 0; i < stops.length - 1; i++) {
+    const [p0, c0] = stops[i]!;
+    const [p1, c1] = stops[i + 1]!;
+    if (tt <= p1) {
+      const k = (tt - p0) / Math.max(1e-6, p1 - p0);
+      return mix(c0, c1, Math.max(0, Math.min(1, k)));
+    }
+  }
+  return stops[stops.length - 1]![1];
+}
+
+function makePlanetSurface(colorHex: number, deepHex: number, style: SurfaceStyle) {
+  const W = 512;
+  const H = 256;
+  const base = hexToRgb(colorHex);
+  const deep = hexToRgb(deepHex);
+  const stops: [number, RGB][] = [
+    [0, darken(deep, 0.25)],
+    [0.35, deep],
+    [0.6, base],
+    [0.82, lighten(base, 0.22)],
+    [1, lighten(base, 0.5)],
+  ];
+  const rows = Math.max(2, Math.round(style.gridX / 2));
+
+  const colorCanvas = document.createElement("canvas");
+  const bumpCanvas = document.createElement("canvas");
+  colorCanvas.width = bumpCanvas.width = W;
+  colorCanvas.height = bumpCanvas.height = H;
+  const cctx = colorCanvas.getContext("2d")!;
+  const bctx = bumpCanvas.getContext("2d")!;
+  const cimg = cctx.createImageData(W, H);
+  const bimg = bctx.createImageData(W, H);
+
+  for (let y = 0; y < H; y++) {
+    const v = (y + 0.5) / H;
+    // Slight darkening toward the poles for a rounder look
+    const poleShade = 1 - Math.pow(Math.abs(v - 0.5) * 2, 3) * 0.35;
+    for (let x = 0; x < W; x++) {
+      const u = (x + 0.5) / W;
+      let amp = 0.5;
+      let sum = 0;
+      let norm = 0;
+      for (let o = 0; o < style.octaves; o++) {
+        const cx = style.gridX << o;
+        const cy = rows << o;
+        sum += amp * vnoise(u, v, cx, cy, style.seed + o * 131);
+        norm += amp;
+        amp *= 0.5;
+      }
+      let t = sum / norm;
+      if (style.bandAmt > 0) {
+        const band =
+          0.5 + 0.5 * Math.sin((v * style.bandFreq + (t - 0.5) * style.warp) * Math.PI * 2);
+        t = t * (1 - style.bandAmt) + band * style.bandAmt;
+      }
+      const col = paletteColor(t, stops);
+      const idx = (y * W + x) * 4;
+      cimg.data[idx] = col[0] * poleShade;
+      cimg.data[idx + 1] = col[1] * poleShade;
+      cimg.data[idx + 2] = col[2] * poleShade;
+      cimg.data[idx + 3] = 255;
+      const b = 20 + t * 235;
+      bimg.data[idx] = b;
+      bimg.data[idx + 1] = b;
+      bimg.data[idx + 2] = b;
+      bimg.data[idx + 3] = 255;
+    }
+  }
+  cctx.putImageData(cimg, 0, 0);
+  bctx.putImageData(bimg, 0, 0);
+
+  const map = new THREE.CanvasTexture(colorCanvas);
+  map.colorSpace = THREE.SRGBColorSpace;
+  map.wrapS = THREE.RepeatWrapping;
+  map.wrapT = THREE.ClampToEdgeWrapping;
+  map.anisotropy = 4;
+  const bumpMap = new THREE.CanvasTexture(bumpCanvas);
+  bumpMap.wrapS = THREE.RepeatWrapping;
+  bumpMap.wrapT = THREE.ClampToEdgeWrapping;
+  return { map, bumpMap };
+}
+
 type OrreryProps = {
   progressById?: Record<string, number>;
   focusedId?: string | null;
@@ -171,6 +387,7 @@ export default function Orrery({
     const planetMeshes: THREE.Mesh[] = [];
     const meshById: Record<string, THREE.Mesh> = {};
     const pivots: Record<string, { pivot: THREE.Group; cfg: OrbitCfg }> = {};
+    const disposables: THREE.Texture[] = [];
 
     for (const p of PLANETS) {
       const cfg = ORBITS[p.id]!;
@@ -215,14 +432,19 @@ export default function Orrery({
       bead.position.x = cfg.radius;
       pivot.add(bead);
 
+      const style = SURFACE[p.id] ?? randomSurfaceStyle(p.id);
+      const { map, bumpMap } = makePlanetSurface(cfg.color, cfg.deep, style);
+      disposables.push(map, bumpMap);
       const planet = new THREE.Mesh(
-        new THREE.SphereGeometry(cfg.size, 40, 40),
+        new THREE.SphereGeometry(cfg.size, 64, 48),
         new THREE.MeshStandardMaterial({
-          color: cfg.color,
-          roughness: 0.45,
-          metalness: 0.12,
+          map,
+          bumpMap,
+          bumpScale: style.bumpScale,
+          roughness: 0.92,
+          metalness: 0.05,
           emissive: cfg.deep,
-          emissiveIntensity: 0.45,
+          emissiveIntensity: 0.12,
         }),
       );
       planet.position.x = cfg.radius;
@@ -453,6 +675,7 @@ export default function Orrery({
       renderer.domElement.removeEventListener("pointerdown", onPointerDown);
       renderer.domElement.removeEventListener("pointerup", onPointerUp);
       controls.dispose();
+      for (const d of disposables) d.dispose();
       renderer.dispose();
       if (mount.contains(renderer.domElement)) {
         mount.removeChild(renderer.domElement);
