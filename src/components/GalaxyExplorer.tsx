@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { PLANETS, type Planet } from "@/data/planets";
 
 type Camera = { x: number; y: number; zoom: number };
@@ -233,7 +234,7 @@ export default function GalaxyExplorer() {
         }
 
         const size = Math.max(0.4, (1 - s.z / 1400) * s.base * (1 + warp * 0.5));
-        const brightness = Math.min(1, (1 - s.z / 1400) + warp * 0.4);
+        const brightness = Math.min(1, 1 - s.z / 1400 + warp * 0.4);
 
         const dist = Math.hypot(ex - px, ey - py);
         if (dist > 1.2) {
@@ -461,8 +462,7 @@ export default function GalaxyExplorer() {
       <div
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
-          background:
-            "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%)",
+          background: "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.65) 100%)",
         }}
       />
 
@@ -470,7 +470,7 @@ export default function GalaxyExplorer() {
       <div className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex items-start justify-between p-6">
         <div className="pointer-events-auto">
           <div className="font-mono text-[10px] uppercase tracking-[0.5em] text-primary/80">
-            ✦ Aetherion Navigation Array
+            ✦ Orbit Insurance Learning Array
           </div>
           <div className="mt-1 font-display text-2xl tracking-[0.15em] text-foreground">
             HYPERLANE CHART
@@ -491,8 +491,23 @@ export default function GalaxyExplorer() {
         <div className="mt-1 opacity-60">{PLANETS.length} worlds indexed</div>
       </div>
 
-      {/* Zoom controls */}
-      <div className="absolute bottom-6 right-6 z-10 flex flex-col overflow-hidden rounded-sm border border-border/60 bg-background/40 font-mono backdrop-blur">
+      {/* Enter Orbit CTA */}
+      <div className="absolute bottom-6 left-1/2 z-20 -translate-x-1/2 flex flex-col items-center gap-2">
+        <Link
+          to="/app"
+          className="group flex items-center gap-3 rounded-full border border-primary/40 bg-background/70 px-6 py-3 font-display text-sm tracking-[0.2em] text-foreground backdrop-blur-xl transition hover:border-primary hover:bg-primary/15 hover:shadow-[0_0_32px_rgba(167,139,250,0.35)]"
+        >
+          <span className="font-mono text-[10px] text-primary/80">✦</span>
+          ENTER THE GALAXY
+          <span className="transition group-hover:translate-x-0.5">→</span>
+        </Link>
+        <div className="font-mono text-[9px] uppercase tracking-[0.35em] text-muted-foreground/80">
+          customise · collect · learn
+        </div>
+      </div>
+
+      {/* Zoom controls — offset above CTA */}
+      <div className="absolute bottom-24 right-6 z-10 flex flex-col overflow-hidden rounded-sm border border-border/60 bg-background/40 font-mono backdrop-blur">
         <button
           onClick={() => {
             const { w, h } = sizeRef.current;
@@ -578,10 +593,10 @@ export default function GalaxyExplorer() {
               <div className="space-y-3 border-t border-border/60 pt-6">
                 {(
                   [
-                    ["Climate", selected.facts.climate],
-                    ["Inhabitants", selected.facts.inhabitants],
-                    ["Factions", selected.facts.factions],
-                    ["History", selected.facts.history],
+                    ["Market conditions", selected.facts.climate],
+                    ["Specialists", selected.facts.inhabitants],
+                    ["Market groups", selected.facts.factions],
+                    ["Field note", selected.facts.history],
                   ] as const
                 ).map(([k, v]) => (
                   <div key={k} className="grid grid-cols-[110px_1fr] gap-4">
@@ -647,14 +662,7 @@ function drawPlanet(
   }
 
   // Body base
-  const body = ctx.createRadialGradient(
-    sx - r * 0.45,
-    sy - r * 0.55,
-    r * 0.05,
-    sx,
-    sy,
-    r * 1.05,
-  );
+  const body = ctx.createRadialGradient(sx - r * 0.45, sy - r * 0.55, r * 0.05, sx, sy, r * 1.05);
   body.addColorStop(0, lighten(p.color, 0.45));
   body.addColorStop(0.5, p.color);
   body.addColorStop(1, darken(p.color, 0.7));
@@ -707,7 +715,14 @@ function drawPlanet(
   ctx.beginPath();
   ctx.arc(sx, sy, r, 0, Math.PI * 2);
   ctx.clip();
-  const spec = ctx.createRadialGradient(sx - r * 0.5, sy - r * 0.55, 0, sx - r * 0.5, sy - r * 0.55, r * 0.6);
+  const spec = ctx.createRadialGradient(
+    sx - r * 0.5,
+    sy - r * 0.55,
+    0,
+    sx - r * 0.5,
+    sy - r * 0.55,
+    r * 0.6,
+  );
   spec.addColorStop(0, "rgba(255,255,255,0.35)");
   spec.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = spec;
@@ -752,9 +767,9 @@ function drawPlanet(
       ctx.stroke();
     };
     bracket(-Math.PI / 4);
-    bracket(-Math.PI * 3 / 4);
+    bracket((-Math.PI * 3) / 4);
     bracket(Math.PI / 4);
-    bracket(Math.PI * 3 / 4);
+    bracket((Math.PI * 3) / 4);
   }
 }
 

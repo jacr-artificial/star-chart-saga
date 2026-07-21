@@ -4,17 +4,17 @@ import GalaxyExplorer from "@/components/GalaxyExplorer";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Aetherion Archive — Galaxy Explorer" },
+      { title: "Star Chart Saga — Galaxy Explorer" },
       {
         name: "description",
         content:
-          "An immersive galaxy explorer of the Aetherion universe. Drift between worlds, uncover their lore, and chart the arms of a fictional spiral galaxy.",
+          "Drift through the hyperlane chart, then enter Orbit to customise your card, collect colleagues, and earn XP on Riskara.",
       },
-      { property: "og:title", content: "Aetherion Archive — Galaxy Explorer" },
+      { property: "og:title", content: "Star Chart Saga — Galaxy Explorer" },
       {
         property: "og:description",
         content:
-          "Drift between 8 fictional worlds in an interactive spiral-galaxy worldbuilding experience.",
+          "Slick galaxy landing meets deep Orbit onboarding — quizzes, cards, and your real colleagues.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
