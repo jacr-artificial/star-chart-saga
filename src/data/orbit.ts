@@ -90,7 +90,7 @@ export type Planet = {
 export const PLANETS: Planet[] = [
   {
     id: "p-riskara",
-    name: "Risk",
+    name: "Riskara",
     domain: "Insurance Fundamentals",
     order: 1,
     size: 150,
