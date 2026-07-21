@@ -70,11 +70,12 @@ export default function PlayerCard({
               {STAT_KEYS.map((s) => (
                 <div
                   key={s.key}
-                  className={`flex items-center gap-1 bg-white/5 rounded-md px-1.5 py-1 ${textScale}`}
+                  className={`flex items-center gap-1 min-w-0 bg-white/5 rounded-md px-1.5 py-1 ${textScale}`}
                 >
-                  <span>{s.icon}</span>
-                  <span className="text-slate-400">{s.label}</span>
-                  <span className={`ml-auto font-bold ${r.text}`}>{stats?.[s.key] ?? 0}</span>
+                  <span className="text-slate-400 truncate whitespace-nowrap">{s.label}</span>
+                  <span className={`ml-auto shrink-0 font-bold ${r.text}`}>
+                    {stats?.[s.key] ?? 0}
+                  </span>
                 </div>
               ))}
             </div>

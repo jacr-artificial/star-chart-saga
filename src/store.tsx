@@ -58,7 +58,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [myCard, setMyCard] = useState<MyCard>({
     rarity: "Common",
     catchphrase: "New in the galaxy 👋",
-    stats: { insight: 6, energy: 6, collab: 6, craft: 6 },
+    stats: {
+      insuranceExpert: 6,
+      riskAppetite: 6,
+      customerFacing: 6,
+      technical: 6,
+      underwriting: 6,
+      claimsHandling: 6,
+      compliance: 6,
+      negotiation: 6,
+    },
     customised: false,
   });
 
