@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "Onboard into Orbit: customise your card, collect colleagues, and earn XP on Riskara.",
+          "Onboard into Hire Orbit: customise your card, collect colleagues, and earn XP on Riskara.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

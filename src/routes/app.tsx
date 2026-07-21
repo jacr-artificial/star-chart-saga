@@ -4,7 +4,7 @@ import OrbitApp from "@/components/OrbitApp";
 export const Route = createFileRoute("/app")({
   head: () => ({
     meta: [
-      { title: "Orbit — Collect your colleagues" },
+      { title: "Hire Orbit — Collect your colleagues" },
       {
         name: "description",
         content:

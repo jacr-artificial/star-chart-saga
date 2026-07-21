@@ -44,7 +44,7 @@ export default function OrbitApp() {
             <button onClick={() => go("galaxy")} className="font-extrabold tracking-tight text-lg">
               🪐{" "}
               <span className="bg-gradient-to-r from-violet-400 to-amber-300 bg-clip-text text-transparent font-display tracking-wider">
-                Orbit
+                Hire Orbit
               </span>
             </button>
             <nav className="flex gap-1 ml-2">
